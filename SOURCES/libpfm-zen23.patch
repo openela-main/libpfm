@@ -1,0 +1,5345 @@
+commit 32af524f03eefac249d51d138b9a3065a1d07960
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Tue Dec 17 22:19:50 2019 -0800
+
+    prepare for AMD Zen2 support
+    
+    Rename Fam17h event file to amd_fam17h_zen1.h.
+    
+    Because we used amd64_fam17h as the PMU name for AMD Fam17h Zen1,
+    we keep it for backward compatibility reasons. However we mark it
+    as deprecated. Instead we introduce amd_fam17h_zen1 which provides
+    the same events. Both pmu names are still valid, though, amd_fam17h_zen1
+    is now the preferred choice.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/README b/README
+index 9dea749..b588353 100644
+--- a/README
++++ b/README
+@@ -39,7 +39,7 @@ The library supports many PMUs. The current version can handle:
+ 		AMD64 Fam14h (Bobcat)
+ 		AMD64 Fam15h (Bulldozer) (core and uncore)
+ 		AMD64 Fam16h (Jaguar)
+-		AMD64 Fam17h (Zen)
++		AMD64 Fam17h (Zen1)
+ 
+ 	- For Intel X86: 
+ 		Intel P6 (Pentium II, Pentium Pro, Pentium III, Pentium M)
+diff --git a/docs/man3/libpfm_amd64_fam17h.3 b/docs/man3/libpfm_amd64_fam17h.3
+index a19653c..7925db2 100644
+--- a/docs/man3/libpfm_amd64_fam17h.3
++++ b/docs/man3/libpfm_amd64_fam17h.3
+@@ -5,14 +5,16 @@ libpfm_amd64_fam17h - support for AMD64 Family 17h processors
+ .nf
+ .B #include <perfmon/pfmlib.h>
+ .sp
+-.B PMU name: amd64_fam15h
+-.B PMU desc: AMD64 Fam17h Zen
++.B PMU name: amd64_fam17h (deprecated), amd_fam17h_zen1
++.B PMU desc: AMD64 Fam17h Zen1
+ .sp
+ .SH DESCRIPTION
+-The library supports AMD Family 17h processors core PMU in both 32 and 64-bit modes.
++The library supports AMD Family 17h processors Zen1 core PMU in both 32 and 64-bit modes.
++The amd64_fam17h PMU model name has been deprecated in favor of amd_fam17_zen1. The old
++name is maintained for backward compatibility reasons, but should not be used anymore.
+ 
+ .SH MODIFIERS
+-The following modifiers are supported on AMD64 Family 17h core PMU:
++The following modifiers are supported on AMD64 Family 17h Zen1 core PMU:
+ .TP
+ .B u
+ Measure at user level which includes privilege levels 1, 2, 3. This corresponds to \fBPFM_PLM3\fR.
+diff --git a/include/perfmon/pfmlib.h b/include/perfmon/pfmlib.h
+index 3f1d2f5..c8dc719 100644
+--- a/include/perfmon/pfmlib.h
++++ b/include/perfmon/pfmlib.h
+@@ -419,7 +419,7 @@ typedef enum {
+ 	PFM_PMU_INTEL_BDX_UNC_SB2,	/* Intel Broadwell-X S-Box 2 uncore */
+ 	PFM_PMU_INTEL_BDX_UNC_SB3,	/* Intel Broadwell-X S-Box 3 uncore */
+ 
+-	PFM_PMU_AMD64_FAM17H,		/* AMD AMD64 Fam17h Zen */
++	PFM_PMU_AMD64_FAM17H,		/* AMD AMD64 Fam17h Zen1 (deprecated) */
+ 	PFM_PMU_AMD64_FAM16H,		/* AMD AMD64 Fam16h Jaguar */
+ 
+ 	PFM_PMU_INTEL_SKX,		/* Intel Skylake-X */
+@@ -553,6 +553,8 @@ typedef enum {
+ 	PFM_PMU_ARM_THUNDERX2_CCPI1,	/* Marvell ThunderX2 Cross-Socket Interconnect unit 1 uncore */
+ 
+ 	PFM_PMU_ARM_A64FX,		/* Fujitsu A64FX processor */
++
++	PFM_PMU_AMD64_FAM17H_ZEN1,	/* AMD AMD64 Fam17h Zen1 */
+ 	/* MUST ADD NEW PMU MODELS HERE */
+ 
+ 	PFM_PMU_MAX			/* end marker */
+diff --git a/lib/Makefile b/lib/Makefile
+index 4a4dc3b..9610cc5 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -248,7 +248,7 @@ INC_X86= pfmlib_intel_x86_priv.h	\
+ 	events/amd64_events_fam12h.h	\
+ 	events/amd64_events_fam14h.h	\
+ 	events/amd64_events_fam15h.h	\
+-	events/amd64_events_fam17h.h	\
++	events/amd64_events_fam17h_zen1.h \
+ 	events/amd64_events_fam16h.h	\
+ 	events/intel_p6_events.h	\
+ 	events/intel_netburst_events.h	\
+diff --git a/lib/events/amd64_events_fam17h.h b/lib/events/amd64_events_fam17h_zen1.h
+similarity index 83%
+rename from lib/events/amd64_events_fam17h.h
+rename to lib/events/amd64_events_fam17h_zen1.h
+index e02559b..218ee8f 100644
+--- a/lib/events/amd64_events_fam17h.h
++++ b/lib/events/amd64_events_fam17h_zen1.h
+@@ -24,7 +24,7 @@
+  * PMU: amd64_fam17h (AMD64 Fam17h))
+  */
+ 
+-static const amd64_umask_t amd64_fam17h_l1_itlb_miss_l2_itlb_miss[]={
++static const amd64_umask_t amd64_fam17h_zen1_l1_itlb_miss_l2_itlb_miss[]={
+   { .uname  = "IF1G",
+     .udesc  = "TBD",
+     .ucode  = 0x4,
+@@ -39,7 +39,7 @@ static const amd64_umask_t amd64_fam17h_l1_itlb_miss_l2_itlb_miss[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_retired_mmx_fp_instructions[]={
++static const amd64_umask_t amd64_fam17h_zen1_retired_mmx_fp_instructions[]={
+   { .uname  = "SSE_INSTR",
+     .udesc  = "TBD",
+     .ucode  = 0x4,
+@@ -54,7 +54,7 @@ static const amd64_umask_t amd64_fam17h_retired_mmx_fp_instructions[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_tagged_ibs_ops[]={
++static const amd64_umask_t amd64_fam17h_zen1_tagged_ibs_ops[]={
+   { .uname  = "IBS_COUNT_ROLLOVER",
+     .udesc  = "Number of times a uop could not be tagged by IBS because of a previous tagged uop that has not retired.",
+     .ucode  = 0x4,
+@@ -69,7 +69,7 @@ static const amd64_umask_t amd64_fam17h_tagged_ibs_ops[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_number_of_move_elimination_and_scalar_op_optimization[]={
++static const amd64_umask_t amd64_fam17h_zen1_number_of_move_elimination_and_scalar_op_optimization[]={
+   { .uname  = "OPTIMIZED",
+     .udesc  = "Number of scalar ops optimized.",
+     .ucode  = 0x8,
+@@ -88,7 +88,7 @@ static const amd64_umask_t amd64_fam17h_number_of_move_elimination_and_scalar_op
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_retired_sse_avx_operations[]={
++static const amd64_umask_t amd64_fam17h_zen1_retired_sse_avx_operations[]={
+   { .uname  = "DP_MULT_ADD_FLOPS",
+     .udesc  = "Double precision multiply-add flops.",
+     .ucode  = 0x80,
+@@ -123,7 +123,7 @@ static const amd64_umask_t amd64_fam17h_retired_sse_avx_operations[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_retired_serializing_ops[]={
++static const amd64_umask_t amd64_fam17h_zen1_retired_serializing_ops[]={
+   { .uname  = "X87_CTRL_RET",
+     .udesc  = "X87 control word mispredict traps due to mispredction in RC or PC, or changes in mask bits.",
+     .ucode  = 0x8,
+@@ -142,7 +142,7 @@ static const amd64_umask_t amd64_fam17h_retired_serializing_ops[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_retired_x87_floating_point_operations[]={
++static const amd64_umask_t amd64_fam17h_zen1_retired_x87_floating_point_operations[]={
+   { .uname  = "DIV_SQR_R_OPS",
+     .udesc  = "Divide and square root ops",
+     .ucode  = 0x4,
+@@ -157,7 +157,7 @@ static const amd64_umask_t amd64_fam17h_retired_x87_floating_point_operations[]=
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_fpu_pipe_assignment[]={
++static const amd64_umask_t amd64_fam17h_zen1_fpu_pipe_assignment[]={
+   { .uname  = "DUAL3",
+     .udesc  = "Total number of multi-pipe uops assigned to pipe3",
+     .ucode  = 0x80,
+@@ -192,7 +192,7 @@ static const amd64_umask_t amd64_fam17h_fpu_pipe_assignment[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_instruction_cache_lines_invalidated[]={
++static const amd64_umask_t amd64_fam17h_zen1_instruction_cache_lines_invalidated[]={
+   { .uname  = "L2_INVALIDATING_PROBE",
+     .udesc  = "IC line invalidated due to L2 invalidating probe (external or LS).",
+     .ucode  = 0x2,
+@@ -203,7 +203,7 @@ static const amd64_umask_t amd64_fam17h_instruction_cache_lines_invalidated[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_instruction_pipe_stall[]={
++static const amd64_umask_t amd64_fam17h_zen1_instruction_pipe_stall[]={
+   { .uname  = "IC_STALL_ANY",
+     .udesc  = "IC pipe was stalled during this clock cycle for any reason (nothing valud in pipe ICM1).",
+     .ucode  = 0x4,
+@@ -218,7 +218,7 @@ static const amd64_umask_t amd64_fam17h_instruction_pipe_stall[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_core_to_l2_cacheable_request_access_status[]={
++static const amd64_umask_t amd64_fam17h_zen1_core_to_l2_cacheable_request_access_status[]={
+   { .uname  = "LS_RD_BLK_C_S",
+     .udesc  = "Load/Store ReadBlock C/S hit",
+     .ucode  = 0x80,
+@@ -253,7 +253,7 @@ static const amd64_umask_t amd64_fam17h_core_to_l2_cacheable_request_access_stat
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_cycles_with_fill_pending_from_l2[]={
++static const amd64_umask_t amd64_fam17h_zen1_cycles_with_fill_pending_from_l2[]={
+   { .uname  = "L2_FILL_BUSY",
+    .udesc  = "TBD",
+     .ucode  = 0x1,
+@@ -261,7 +261,7 @@ static const amd64_umask_t amd64_fam17h_cycles_with_fill_pending_from_l2[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_l2_latency[]={
++static const amd64_umask_t amd64_fam17h_zen1_l2_latency[]={
+   { .uname  = "L2_CYCLES_WAITING_ON_FILLS",
+     .udesc  = "TBD",
+     .ucode  = 0x1,
+@@ -269,7 +269,7 @@ static const amd64_umask_t amd64_fam17h_l2_latency[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_requests_to_l2_group1[]={
++static const amd64_umask_t amd64_fam17h_zen1_requests_to_l2_group1[]={
+   { .uname  = "RD_BLK_L",
+     .udesc  = "TBD",
+     .ucode  = 0x80,
+@@ -304,7 +304,7 @@ static const amd64_umask_t amd64_fam17h_requests_to_l2_group1[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_requests_to_l2_group2[]={
++static const amd64_umask_t amd64_fam17h_zen1_requests_to_l2_group2[]={
+   { .uname  = "GROUP1",
+     .udesc  = "TBD",
+     .ucode  = 0x80,
+@@ -339,7 +339,7 @@ static const amd64_umask_t amd64_fam17h_requests_to_l2_group2[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_ls_to_l2_wbc_requests[]={
++static const amd64_umask_t amd64_fam17h_zen1_ls_to_l2_wbc_requests[]={
+   { .uname  = "WCB_WRITE",
+     .udesc  = "TBD",
+     .ucode  = 0x40,
+@@ -370,7 +370,7 @@ static const amd64_umask_t amd64_fam17h_ls_to_l2_wbc_requests[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_ls_dispatch[]={
++static const amd64_umask_t amd64_fam17h_zen1_ls_dispatch[]={
+   { .uname  = "LD_ST_DISPATCH",
+     .udesc  = "Load/Store uops dispatched.",
+     .ucode  = 0x4,
+@@ -385,7 +385,7 @@ static const amd64_umask_t amd64_fam17h_ls_dispatch[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_ineffective_software_prefetch[]={
++static const amd64_umask_t amd64_fam17h_zen1_ineffective_software_prefetch[]={
+   { .uname  = "MAB_MCH_CNT",
+     .udesc  = "TBD",
+     .ucode  = 0x2,
+@@ -396,7 +396,7 @@ static const amd64_umask_t amd64_fam17h_ineffective_software_prefetch[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_l1_dtlb_miss[]={
++static const amd64_umask_t amd64_fam17h_zen1_l1_dtlb_miss[]={
+   { .uname  = "TLB_RELOAD_1G_L2_MISS",
+     .udesc  = "TBD",
+     .ucode  = 0x80,
+@@ -431,7 +431,7 @@ static const amd64_umask_t amd64_fam17h_l1_dtlb_miss[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_locks[]={
++static const amd64_umask_t amd64_fam17h_zen1_locks[]={
+   { .uname  = "SPEC_LOCK_MAP_COMMIT",
+     .udesc  = "TBD",
+     .ucode  = 0x8,
+@@ -450,7 +450,7 @@ static const amd64_umask_t amd64_fam17h_locks[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_mab_allocation_by_pipe[]={
++static const amd64_umask_t amd64_fam17h_zen1_mab_allocation_by_pipe[]={
+   { .uname  = "TLB_PIPE_EARLY",
+     .udesc  = "TBD",
+     .ucode  = 0x10,
+@@ -473,7 +473,7 @@ static const amd64_umask_t amd64_fam17h_mab_allocation_by_pipe[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_prefetch_instructions_dispatched[]={
++static const amd64_umask_t amd64_fam17h_zen1_prefetch_instructions_dispatched[]={
+   { .uname  = "PREFETCH_NTA",
+     .udesc  = "Non-temporal prefetches.",
+     .ucode  = 0x4,
+@@ -488,7 +488,7 @@ static const amd64_umask_t amd64_fam17h_prefetch_instructions_dispatched[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_tablewalker_allocation[]={
++static const amd64_umask_t amd64_fam17h_zen1_tablewalker_allocation[]={
+   { .uname  = "ALLOC_ISIDE1",
+     .udesc  = "TBD",
+     .ucode  = 0x8,
+@@ -507,7 +507,7 @@ static const amd64_umask_t amd64_fam17h_tablewalker_allocation[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_oc_mode_switch[]={
++static const amd64_umask_t amd64_fam17h_zen1_oc_mode_switch[]={
+   { .uname  = "OC_IC_MODE_SWITCH",
+     .udesc  = "TBD",
+     .ucode  = 0x2,
+@@ -518,7 +518,7 @@ static const amd64_umask_t amd64_fam17h_oc_mode_switch[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_dynamic_tokens_dispatch_stall_cycles_0[]={
++static const amd64_umask_t amd64_fam17h_zen1_dynamic_tokens_dispatch_stall_cycles_0[]={
+   { .uname  = "RETIRE_TOKEN_STALL",
+     .udesc  = "Retire tokens unavailable",
+     .ucode  = 0x40,
+@@ -549,7 +549,7 @@ static const amd64_umask_t amd64_fam17h_dynamic_tokens_dispatch_stall_cycles_0[]
+   },
+ };
+ 
+-static const amd64_entry_t amd64_fam17h_pe[]={
++static const amd64_entry_t amd64_fam17h_zen1_pe[]={
+   { .name   = "L1_ITLB_MISS_L2_ITLB_HIT",
+     .desc   = "The number of instruction fetches that miss in the L1 ITLB but hit in the L2 ITLB.",
+     .modmsk  = AMD64_FAM17H_ATTRS,
+@@ -563,8 +563,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x85,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_l1_itlb_miss_l2_itlb_miss),
+-    .umasks = amd64_fam17h_l1_itlb_miss_l2_itlb_miss,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_l1_itlb_miss_l2_itlb_miss),
++    .umasks = amd64_fam17h_zen1_l1_itlb_miss_l2_itlb_miss,
+   },
+   { .name   = "PIPELINE_RESTART_DUE_TO_INSTRUCTION_STREAM_PROBE",
+     .desc   = "The number of pipeline restarts caused by invalidating probes that hit on the instruction stream currently being executed. This would happen if the active instruction stream was being modified by another processor in an MP system - typically a highly unlikely event.",
+@@ -684,8 +684,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0xcb,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_retired_mmx_fp_instructions),
+-    .umasks = amd64_fam17h_retired_mmx_fp_instructions,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_retired_mmx_fp_instructions),
++    .umasks = amd64_fam17h_zen1_retired_mmx_fp_instructions,
+   },
+   { .name   = "RETIRED_NEAR_RETURNS",
+     .desc   = "The number of near return instructions (RET or RETI) retired.",
+@@ -707,8 +707,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x1cf,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_tagged_ibs_ops),
+-    .umasks = amd64_fam17h_tagged_ibs_ops,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_tagged_ibs_ops),
++    .umasks = amd64_fam17h_zen1_tagged_ibs_ops,
+   },
+   { .name   = "NUMBER_OF_MOVE_ELIMINATION_AND_SCALAR_OP_OPTIMIZATION",
+     .desc   = "This is a dispatch based speculative event. It is useful for measuring the effectiveness of the Move elimination and Scalar code optimization schemes.",
+@@ -716,8 +716,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x4,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_number_of_move_elimination_and_scalar_op_optimization),
+-    .umasks = amd64_fam17h_number_of_move_elimination_and_scalar_op_optimization,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_number_of_move_elimination_and_scalar_op_optimization),
++    .umasks = amd64_fam17h_zen1_number_of_move_elimination_and_scalar_op_optimization,
+   },
+   { .name   = "RETIRED_SSE_AVX_OPERATIONS",
+     .desc   = "This is a retire-based event. The number of retired SSE/AVX FLOPS. The number of events logged per cycle can vary from 0 to 64. This event can count above 15.",
+@@ -725,8 +725,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x3,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_retired_sse_avx_operations),
+-    .umasks = amd64_fam17h_retired_sse_avx_operations,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_retired_sse_avx_operations),
++    .umasks = amd64_fam17h_zen1_retired_sse_avx_operations,
+   },
+   { .name   = "RETIRED_SERIALIZING_OPS",
+     .desc   = "The number of serializing Ops retired.",
+@@ -734,8 +734,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x5,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_retired_serializing_ops),
+-    .umasks = amd64_fam17h_retired_serializing_ops,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_retired_serializing_ops),
++    .umasks = amd64_fam17h_zen1_retired_serializing_ops,
+   },
+   { .name   = "RETIRED_X87_FLOATING_POINT_OPERATIONS",
+     .desc   = "The number of x87 floating-point Ops that have retired. The number of events logged per cycle can vary from 0 to 8.",
+@@ -743,8 +743,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x2,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_retired_x87_floating_point_operations),
+-    .umasks = amd64_fam17h_retired_x87_floating_point_operations,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_retired_x87_floating_point_operations),
++    .umasks = amd64_fam17h_zen1_retired_x87_floating_point_operations,
+   },
+   { .name   = "FP_SCHEDULER_EMPTY",
+     .desc   = "This is a speculative event. The number of cycles in which the FPU scheduler is empty. Note that some Ops like FP loads bypass the scheduler. Invert this to count cycles in which at least one FPU operation is present in the FPU.",
+@@ -759,8 +759,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x0,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_fpu_pipe_assignment),
+-    .umasks = amd64_fam17h_fpu_pipe_assignment,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_fpu_pipe_assignment),
++    .umasks = amd64_fam17h_zen1_fpu_pipe_assignment,
+   },
+   { .name   = "INSTRUCTION_CACHE_REFILLS_FROM_L2",
+     .desc   = "The number of 64-byte instruction cachelines that was fulfilled by the L2 cache.",
+@@ -782,8 +782,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x8c,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_instruction_cache_lines_invalidated),
+-    .umasks = amd64_fam17h_instruction_cache_lines_invalidated,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_instruction_cache_lines_invalidated),
++    .umasks = amd64_fam17h_zen1_instruction_cache_lines_invalidated,
+   },
+   { .name   = "INSTRUCTION_PIPE_STALL",
+     .desc   = "TBD",
+@@ -791,8 +791,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x87,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_instruction_pipe_stall),
+-    .umasks = amd64_fam17h_instruction_pipe_stall,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_instruction_pipe_stall),
++    .umasks = amd64_fam17h_zen1_instruction_pipe_stall,
+   },
+   { .name   = "32_BYTE_INSTRUCTION_CACHE_FETCH",
+     .desc   = "The number of 32B fetch windows transferred from IC pipe to DE instruction decoder (includes non-cacheable and cacheable fill responses).",
+@@ -814,8 +814,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x64,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_core_to_l2_cacheable_request_access_status),
+-    .umasks = amd64_fam17h_core_to_l2_cacheable_request_access_status,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_core_to_l2_cacheable_request_access_status),
++    .umasks = amd64_fam17h_zen1_core_to_l2_cacheable_request_access_status,
+   },
+   { .name   = "CYCLES_WITH_FILL_PENDING_FROM_L2",
+     .desc   = "Total cycles spent with one or more fill requests in flight from L2.",
+@@ -823,8 +823,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x6d,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_cycles_with_fill_pending_from_l2),
+-    .umasks = amd64_fam17h_cycles_with_fill_pending_from_l2,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_cycles_with_fill_pending_from_l2),
++    .umasks = amd64_fam17h_zen1_cycles_with_fill_pending_from_l2,
+   },
+   { .name   = "L2_LATENCY",
+     .desc   = "Total cycles spent waiting for L2 fills to complete from L3 or memory, divided by four. This may be used to calculate average latency by multiplying this count by four and then dividing by the total number of L2 fills (umask L2RequestG1). Event counts are for both threads. To calculate average latency, the number of fills from both threads must be used.",
+@@ -832,8 +832,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x62,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_l2_latency),
+-    .umasks = amd64_fam17h_l2_latency,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_l2_latency),
++    .umasks = amd64_fam17h_zen1_l2_latency,
+   },
+   { .name   = "REQUESTS_TO_L2_GROUP1",
+     .desc   = "TBD",
+@@ -841,8 +841,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x60,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_requests_to_l2_group1),
+-    .umasks = amd64_fam17h_requests_to_l2_group1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_requests_to_l2_group1),
++    .umasks = amd64_fam17h_zen1_requests_to_l2_group1,
+   },
+   { .name   = "REQUESTS_TO_L2_GROUP2",
+     .desc   = "Multi-events in that LS and IF requests can be received simultaneous.",
+@@ -850,8 +850,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x61,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_requests_to_l2_group2),
+-    .umasks = amd64_fam17h_requests_to_l2_group2,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_requests_to_l2_group2),
++    .umasks = amd64_fam17h_zen1_requests_to_l2_group2,
+   },
+   { .name   = "LS_TO_L2_WBC_REQUESTS",
+     .desc   = "TBD",
+@@ -859,8 +859,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x63,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_ls_to_l2_wbc_requests),
+-    .umasks = amd64_fam17h_ls_to_l2_wbc_requests,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_ls_to_l2_wbc_requests),
++    .umasks = amd64_fam17h_zen1_ls_to_l2_wbc_requests,
+   },
+   { .name   = "DATA_CACHE_ACCESSES",
+     .desc   = "The number of accesses to the data cache for load and store references. This may include certain microcode scratchpad accesses, although these are generally rare. Each increment represents an eight-byte access, although the instruction may only be accessing a portion of that. This event is a speculative event.",
+@@ -875,8 +875,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x29,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_ls_dispatch),
+-    .umasks = amd64_fam17h_ls_dispatch,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_ls_dispatch),
++    .umasks = amd64_fam17h_zen1_ls_dispatch,
+   },
+   { .name   = "INEFFECTIVE_SOFTWARE_PREFETCH",
+     .desc   = "The number of software prefetches that did not fetch data outside of the processor core.",
+@@ -884,8 +884,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x52,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_ineffective_software_prefetch),
+-    .umasks = amd64_fam17h_ineffective_software_prefetch,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_ineffective_software_prefetch),
++    .umasks = amd64_fam17h_zen1_ineffective_software_prefetch,
+   },
+   { .name   = "L1_DTLB_MISS",
+     .desc   = "L1 Data TLB misses.",
+@@ -893,8 +893,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x45,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_l1_dtlb_miss),
+-    .umasks = amd64_fam17h_l1_dtlb_miss,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_l1_dtlb_miss),
++    .umasks = amd64_fam17h_zen1_l1_dtlb_miss,
+   },
+   { .name   = "LOCKS",
+     .desc   = "Lock operations. Unit masks ORed",
+@@ -902,8 +902,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x25,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_locks),
+-    .umasks = amd64_fam17h_locks,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_locks),
++    .umasks = amd64_fam17h_zen1_locks,
+   },
+   { .name   = "MAB_ALLOCATION_BY_PIPE",
+     .desc   = "TBD",
+@@ -911,8 +911,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x41,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_mab_allocation_by_pipe),
+-    .umasks = amd64_fam17h_mab_allocation_by_pipe,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_mab_allocation_by_pipe),
++    .umasks = amd64_fam17h_zen1_mab_allocation_by_pipe,
+   },
+   { .name   = "MISALIGNED_LOADS",
+     .desc   = "TBD",
+@@ -934,8 +934,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x4b,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_prefetch_instructions_dispatched),
+-    .umasks = amd64_fam17h_prefetch_instructions_dispatched,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_prefetch_instructions_dispatched),
++    .umasks = amd64_fam17h_zen1_prefetch_instructions_dispatched,
+   },
+   { .name   = "STORE_TO_LOAD_FORWARD",
+     .desc   = "Number of STore Lad Forward hits.",
+@@ -950,8 +950,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x46,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_tablewalker_allocation),
+-    .umasks = amd64_fam17h_tablewalker_allocation,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_tablewalker_allocation),
++    .umasks = amd64_fam17h_zen1_tablewalker_allocation,
+   },
+   { .name   = "L1_BTB_CORRECTION",
+     .desc   = "TBD",
+@@ -973,8 +973,8 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0x28a,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_oc_mode_switch),
+-    .umasks = amd64_fam17h_oc_mode_switch,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_oc_mode_switch),
++    .umasks = amd64_fam17h_zen1_oc_mode_switch,
+   },
+   { .name   = "DYNAMIC_TOKENS_DISPATCH_STALLS_CYCLES_0",
+     .desc   = "Cycles where a dispatch group is valid but does not get dispatched due to a token stall.",
+@@ -982,7 +982,7 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .code    = 0xaf,
+     .flags   = 0,
+     .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_dynamic_tokens_dispatch_stall_cycles_0),
+-    .umasks = amd64_fam17h_dynamic_tokens_dispatch_stall_cycles_0,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_dynamic_tokens_dispatch_stall_cycles_0),
++    .umasks = amd64_fam17h_zen1_dynamic_tokens_dispatch_stall_cycles_0,
+   },
+ };
+diff --git a/lib/pfmlib_amd64.c b/lib/pfmlib_amd64.c
+index a701d78..29efd08 100644
+--- a/lib/pfmlib_amd64.c
++++ b/lib/pfmlib_amd64.c
+@@ -174,7 +174,7 @@ amd64_get_revision(pfm_amd64_config_t *cfg)
+ 	} else if (cfg->family == 21) { /* family 15h */
+ 		rev = PFM_PMU_AMD64_FAM15H_INTERLAGOS;
+ 	} else if (cfg->family == 23) { /* family 17h */
+-		rev = PFM_PMU_AMD64_FAM17H;
++		rev = PFM_PMU_AMD64_FAM17H_ZEN1;
+ 	} else if (cfg->family == 22) { /* family 16h */
+ 		rev = PFM_PMU_AMD64_FAM16H;
+ 	}
+diff --git a/lib/pfmlib_amd64_fam17h.c b/lib/pfmlib_amd64_fam17h.c
+index 443b25f..ea67f79 100644
+--- a/lib/pfmlib_amd64_fam17h.c
++++ b/lib/pfmlib_amd64_fam17h.c
+@@ -26,22 +26,70 @@
+ /* private headers */
+ #include "pfmlib_priv.h"
+ #include "pfmlib_amd64_priv.h"
+-#include "events/amd64_events_fam17h.h"
++#include "events/amd64_events_fam17h_zen1.h"
+ 
+-pfmlib_pmu_t amd64_fam17h_support={
+-	.desc			= "AMD64 Fam17h Zen",
++/*
++ * This function detects ZEN1 for the deprecated
++ * amd_fam17h pmu model name.
++ */
++static int
++pfm_amd64_family_detect_zen1(void *this)
++{
++	int ret, rev;
++
++	ret = pfm_amd64_detect(this);
++	if (ret != PFM_SUCCESS)
++		return ret;
++
++	rev = pfm_amd64_cfg.revision;
++	return rev == PFM_PMU_AMD64_FAM17H_ZEN1 ? PFM_SUCCESS: PFM_ERR_NOTSUPP;
++}
++
++/*
++ * Deprecated PMU model, kept here for backward compatibility.
++ * Should use amd_fam17h_zen1 instead.
++ */
++pfmlib_pmu_t amd64_fam17h_deprecated_support={
++	.desc			= "AMD64 Fam17h Zen1 (deprecated - use amd_fam17_zen1 instead)",
+ 	.name			= "amd64_fam17h",
+ 	.pmu			= PFM_PMU_AMD64_FAM17H,
+ 	.pmu_rev		= 0,
+-	.pme_count		= LIBPFM_ARRAY_SIZE(amd64_fam17h_pe),
++	.pme_count		= LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_pe),
+ 	.type			= PFM_PMU_TYPE_CORE,
+ 	.supported_plm		= AMD64_FAM10H_PLM,
+ 	.num_cntrs		= 6,
+ 	.max_encoding		= 1,
+-	.pe			= amd64_fam17h_pe,
++	.pe			= amd64_fam17h_zen1_pe,
+ 	.atdesc			= amd64_mods,
+-	.flags			= PFMLIB_PMU_FL_RAW_UMASK,
++	.flags			= PFMLIB_PMU_FL_RAW_UMASK | PFMLIB_PMU_FL_DEPR,
+ 	.cpu_family		= PFM_PMU_AMD64_FAM17H,
++	.pmu_detect		= pfm_amd64_family_detect_zen1,
++	.get_event_encoding[PFM_OS_NONE] = pfm_amd64_get_encoding,
++	 PFMLIB_ENCODE_PERF(pfm_amd64_get_perf_encoding),
++	.get_event_first	= pfm_amd64_get_event_first,
++	.get_event_next		= pfm_amd64_get_event_next,
++	.event_is_valid		= pfm_amd64_event_is_valid,
++	.validate_table		= pfm_amd64_validate_table,
++	.get_event_info		= pfm_amd64_get_event_info,
++	.get_event_attr_info	= pfm_amd64_get_event_attr_info,
++	 PFMLIB_VALID_PERF_PATTRS(pfm_amd64_perf_validate_pattrs),
++	.get_event_nattrs	= pfm_amd64_get_event_nattrs,
++};
++
++pfmlib_pmu_t amd64_fam17h_zen1_support={
++	.desc			= "AMD64 Fam17h Zen1",
++	.name			= "amd64_fam17h_zen1",
++	.pmu			= PFM_PMU_AMD64_FAM17H_ZEN1,
++	.pmu_rev		= 0,
++	.pme_count		= LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_pe),
++	.type			= PFM_PMU_TYPE_CORE,
++	.supported_plm		= AMD64_FAM10H_PLM,
++	.num_cntrs		= 6,
++	.max_encoding		= 1,
++	.pe			= amd64_fam17h_zen1_pe,
++	.atdesc			= amd64_mods,
++	.flags			= PFMLIB_PMU_FL_RAW_UMASK,
++	.cpu_family		= PFM_PMU_AMD64_FAM17H_ZEN1,
+ 	.pmu_detect		= pfm_amd64_family_detect,
+ 	.get_event_encoding[PFM_OS_NONE] = pfm_amd64_get_encoding,
+ 	 PFMLIB_ENCODE_PERF(pfm_amd64_get_perf_encoding),
+diff --git a/lib/pfmlib_common.c b/lib/pfmlib_common.c
+index 31d16e9..3f2d689 100644
+--- a/lib/pfmlib_common.c
++++ b/lib/pfmlib_common.c
+@@ -78,7 +78,8 @@ static pfmlib_pmu_t *pfmlib_pmus[]=
+ 	&amd64_fam15h_interlagos_support,
+ 	&amd64_fam15h_nb_support,
+ 	&amd64_fam16h_support,
+-	&amd64_fam17h_support,
++	&amd64_fam17h_deprecated_support,
++	&amd64_fam17h_zen1_support,
+ 	&intel_core_support,
+ 	&intel_atom_support,
+ 	&intel_nhm_support,
+diff --git a/lib/pfmlib_priv.h b/lib/pfmlib_priv.h
+index 5cddc9c..ea618ae 100644
+--- a/lib/pfmlib_priv.h
++++ b/lib/pfmlib_priv.h
+@@ -248,7 +248,8 @@ extern pfmlib_pmu_t amd64_fam14h_bobcat_support;
+ extern pfmlib_pmu_t amd64_fam15h_interlagos_support;
+ extern pfmlib_pmu_t amd64_fam15h_nb_support;
+ extern pfmlib_pmu_t amd64_fam16h_support;
+-extern pfmlib_pmu_t amd64_fam17h_support;
++extern pfmlib_pmu_t amd64_fam17h_deprecated_support;
++extern pfmlib_pmu_t amd64_fam17h_zen1_support;
+ extern pfmlib_pmu_t intel_p6_support;
+ extern pfmlib_pmu_t intel_ppro_support;
+ extern pfmlib_pmu_t intel_pii_support;
+diff --git a/tests/validate_x86.c b/tests/validate_x86.c
+index b32cf22..af5f664 100644
+--- a/tests/validate_x86.c
++++ b/tests/validate_x86.c
+@@ -5641,6 +5641,30 @@ static const test_event_t x86_test_events[]={
+ 	  .codes[0] = 0x510845ull,
+ 	  .fstr = "amd64_fam17h::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen1::retired_uops",
++	  .count = 1,
++	  .codes[0] = 0x5300c1ull,
++	  .fstr = "amd64_fam17h_zen1::RETIRED_UOPS:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen1::cycles_not_in_halt",
++	  .count = 1,
++	  .codes[0] = 0x530076ull,
++	  .fstr = "amd64_fam17h_zen1::CYCLES_NOT_IN_HALT:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen1::locks:spec_lock",
++	  .count = 1,
++	  .codes[0] = 0x530425ull,
++	  .fstr = "amd64_fam17h_zen1::LOCKS:SPEC_LOCK:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:u",
++	  .count = 1,
++	  .codes[0] = 0x510845ull,
++	  .fstr = "amd64_fam17h::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
+ 	{ SRC_LINE,
+ 	  .name = "amd64_fam16h::RETIRED_INSTRUCTIONS",
+ 	  .ret  = PFM_SUCCESS,
+
+commit ddafe9d7c187b48950095c283435f47b59b953e9
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Tue Dec 17 22:39:53 2019 -0800
+
+    add AMD Fam17h Zen2 core PMU support
+    
+    This patch adds AMD Fam17h Zen2 core PMU support. This is based on the
+    public specifications PPR (#55803) Rev 0.54 - Sep 12, 2019.
+    
+    Available at: https://developer.amd.com/wp-content/resources/55803_0.54-PUB.pdf
+    
+    The patch adds a new PMU model: amd_fam17_zen2
+    The amd_fam17h is still assigned to zen1.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/README b/README
+index b588353..55efedf 100644
+--- a/README
++++ b/README
+@@ -40,6 +40,7 @@ The library supports many PMUs. The current version can handle:
+ 		AMD64 Fam15h (Bulldozer) (core and uncore)
+ 		AMD64 Fam16h (Jaguar)
+ 		AMD64 Fam17h (Zen1)
++		AMD64 Fam17h (Zen2)
+ 
+ 	- For Intel X86: 
+ 		Intel P6 (Pentium II, Pentium Pro, Pentium III, Pentium M)
+diff --git a/docs/Makefile b/docs/Makefile
+index 4862d22..1c57881 100644
+--- a/docs/Makefile
++++ b/docs/Makefile
+@@ -40,6 +40,7 @@ ARCH_MAN=libpfm_intel_core.3	\
+ 	 libpfm_amd64_fam15h.3	\
+ 	 libpfm_amd64_fam16h.3	\
+ 	 libpfm_amd64_fam17h.3	\
++	 libpfm_amd64_fam17h_zen2.3 \
+ 	 libpfm_intel_atom.3	\
+ 	 libpfm_intel_nhm.3	\
+ 	 libpfm_intel_nhm_unc.3 \
+diff --git a/docs/man3/libpfm_amd64_fam17h_zen2.3 b/docs/man3/libpfm_amd64_fam17h_zen2.3
+new file mode 100644
+index 0000000..05a14f6
+--- /dev/null
++++ b/docs/man3/libpfm_amd64_fam17h_zen2.3
+@@ -0,0 +1,49 @@
++.TH LIBPFM 3  "December, 2019" "" "Linux Programmer's Manual"
++.SH NAME
++libpfm_amd64_fam17h_zen2 - support for AMD64 Family 17h model 31h processors
++.SH SYNOPSIS
++.nf
++.B #include <perfmon/pfmlib.h>
++.sp
++.B PMU name: amd64_fam17h_zen2
++.B PMU desc: AMD64 Fam17h Zen2
++.sp
++.SH DESCRIPTION
++The library supports AMD Family 17h processors Zen2 core PMU in both 32 and 64-bit modes.
++
++.SH MODIFIERS
++The following modifiers are supported on AMD64 Family 17h Zen2 core PMU:
++.TP
++.B u
++Measure at user level which includes privilege levels 1, 2, 3. This corresponds to \fBPFM_PLM3\fR.
++This is a boolean modifier.
++.TP
++.B k
++Measure at kernel level which includes privilege level 0. This corresponds to \fBPFM_PLM0\fR.
++This is a boolean modifier.
++.TP
++.B h
++Measure at while executing in host mode (when using virtualization). This corresponds to \fBPFM_PLMH\fR.
++This modifier is available starting with Fam10h. This is a boolean modifier.
++.TP
++.B g
++Measure at while executing in guest mode (when using virtualization). This modifier is available
++starting with Fam10h. This is a boolean modifier.
++.TP
++.B i
++Invert the meaning of the event. The counter will now count cycles in which the event is \fBnot\fR
++occurring. This is a boolean modifier
++.TP
++.B e
++Enable edge detection, i.e., count only when there is a state transition. This is a boolean modifier.
++.TP
++.B c
++Set the counter mask value. The mask acts as a threshold. The counter will count the number of cycles
++in which the number of occurrences of the event is greater or equal to the threshold. This is an integer
++modifier with values in the range [0:255].
++
++.SH AUTHORS
++.nf
++Stephane Eranian <eranian@gmail.com>
++.if
++.PP
+diff --git a/include/perfmon/pfmlib.h b/include/perfmon/pfmlib.h
+index c8dc719..c214f17 100644
+--- a/include/perfmon/pfmlib.h
++++ b/include/perfmon/pfmlib.h
+@@ -555,6 +555,7 @@ typedef enum {
+ 	PFM_PMU_ARM_A64FX,		/* Fujitsu A64FX processor */
+ 
+ 	PFM_PMU_AMD64_FAM17H_ZEN1,	/* AMD AMD64 Fam17h Zen1 */
++	PFM_PMU_AMD64_FAM17H_ZEN2,	/* AMD AMD64 Fam17h Zen2 */
+ 	/* MUST ADD NEW PMU MODELS HERE */
+ 
+ 	PFM_PMU_MAX			/* end marker */
+diff --git a/lib/Makefile b/lib/Makefile
+index 9610cc5..0556967 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -249,6 +249,7 @@ INC_X86= pfmlib_intel_x86_priv.h	\
+ 	events/amd64_events_fam14h.h	\
+ 	events/amd64_events_fam15h.h	\
+ 	events/amd64_events_fam17h_zen1.h \
++	events/amd64_events_fam17h_zen2.h \
+ 	events/amd64_events_fam16h.h	\
+ 	events/intel_p6_events.h	\
+ 	events/intel_netburst_events.h	\
+diff --git a/lib/events/amd64_events_fam17h_zen2.h b/lib/events/amd64_events_fam17h_zen2.h
+new file mode 100644
+index 0000000..87dfff0
+--- /dev/null
++++ b/lib/events/amd64_events_fam17h_zen2.h
+@@ -0,0 +1,1056 @@
++/*
++ * Contributed by Stephane Eranian <eranian@gmail.com>
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
++ * of the Software, and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
++ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
++ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
++ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
++ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ * This file is part of libpfm, a performance monitoring support library for
++ * applications on Linux.
++ *
++ * PMU: amd64_fam17h_zen2_zen2 (AMD64 Fam17h Zen2))
++ */
++
++static const amd64_umask_t amd64_fam17h_zen2_l1_itlb_miss_l2_itlb_miss[]={
++  { .uname  = "IF1G",
++    .udesc  = "Number of instruction fetches to a 1GB page",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IF2M",
++    .udesc  = "Number of instruction fetches to a 2MB page",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IF4K",
++    .udesc  = "Number of instruction fetches to a 4KB page",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_itlb_fetch_hit[]={
++  { .uname  = "IF1G",
++    .udesc  = "L1 instruction fetch that hit a 1GB page.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IF2M",
++    .udesc  = "L1 instruction fetch that hit a 2MB page.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IF4K",
++    .udesc  = "L1 instruction fetch that hit a 4KB page.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_retired_mmx_fp_instructions[]={
++  { .uname  = "SSE_INSTR",
++    .udesc  = "Number of SSE instructions (SSE, SSE2, SSE3, SSE$, SSE4A, SSE41, SSE42, AVX).",
++    .ucode  = 0x4,
++  },
++  { .uname  = "MMX_INSTR",
++    .udesc  = "Number of MMX instructions.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "X87_INSTR",
++    .udesc  = "Number of X87 instructions.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_tagged_ibs_ops[]={
++  { .uname  = "IBS_COUNT_ROLLOVER",
++    .udesc  = "Number of times a uop could not be tagged by IBS because of a previous tagged uop that has not retired.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IBS_TAGGED_OPS_RET",
++    .udesc  = "Number of uops tagged by IBS that retired.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IBS_TAGGED_OPS",
++    .udesc  = "Number of uops tagged by IBS.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_number_of_move_elimination_and_scalar_op_optimization[]={
++  { .uname  = "OPTIMIZED",
++    .udesc  = "Number of scalar ops optimized.",
++    .ucode  = 0x8,
++  },
++  { .uname  = "OPT_POTENTIAL",
++    .udesc  = "Number of ops that are candidates for optimization (have z-bit either set or pass.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "SSE_MOV_OPS_ELIM",
++    .udesc  = "Number of SSE move ops eliminated.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "SSE_MOV_OPS",
++    .udesc  = "Number of SSE move ops.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_retired_sse_avx_operations[]={
++  { .uname  = "MAC_FLOPS",
++    .udesc  = "Mac flops. MAC FLOPS count as 2 FLOPS.",
++    .ucode  = 0x8,
++  },
++  { .uname  = "DIV_FLOPS",
++    .udesc  = "Divide/square root flops.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "MULT_FLOPS",
++    .udesc  = "Multiply flops.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "ADD_SUB_FLOPS",
++    .udesc  = "Add/subtract flops.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_retired_serializing_ops[]={
++  { .uname  = "X87_CTRL_RET",
++    .udesc  = "X87 control word mispredict traps due to mispredction in RC or PC, or changes in mask bits.",
++    .ucode  = 0x1,
++  },
++  { .uname  = "X87_BOT_RET",
++    .udesc  = "X87 bottom-executing uops retired.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "SSE_CTRL_RET",
++    .udesc  = "SSE control word mispreduct traps due to mispredctions in RC, FTZ or DAZ or changes in mask bits.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "SSE_BOT_RET",
++    .udesc  = "SSE bottom-executing uops retired.",
++    .ucode  = 0x8,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_fp_dispatch_faults[]={
++  { .uname  = "X87_FULL_FAULT",
++    .udesc  = "X87 fill faults",
++    .ucode  = 0x1,
++  },
++  { .uname  = "XMM_FILL_FAULT",
++    .udesc  = "XMM fill faults",
++    .ucode  = 0x2,
++  },
++  { .uname  = "YMM_FILL_FAULT",
++    .udesc  = "YMM fill faults",
++    .ucode  = 0x4,
++  },
++  { .uname  = "YMM_SPILL_FAULT",
++    .udesc  = "YMM spill faults",
++    .ucode  = 0x8,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_retired_x87_floating_point_operations[]={
++  { .uname  = "DIV_SQR_R_OPS",
++    .udesc  = "Divide and square root ops",
++    .ucode  = 0x4,
++  },
++  { .uname  = "MUL_OPS",
++    .udesc  = "Multiple ops",
++    .ucode  = 0x2,
++  },
++  { .uname  = "ADD_SUB_OPS",
++    .udesc  = "Add/subtract ops",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_fpu_pipe_assignment[]={
++  { .uname  = "DUAL3",
++    .udesc  = "Total number of multi-pipe uops assigned to pipe3",
++    .ucode  = 0x80,
++  },
++  { .uname  = "DUAL2",
++    .udesc  = "Total number of multi-pipe uops assigned to pipe2",
++    .ucode  = 0x40,
++  },
++  { .uname  = "DUAL1",
++    .udesc  = "Total number of multi-pipe uops assigned to pipe1",
++    .ucode  = 0x20,
++  },
++  { .uname  = "DUAL0",
++    .udesc  = "Total number of multi-pipe uops assigned to pipe0",
++    .ucode  = 0x10,
++  },
++  { .uname  = "TOTAL3",
++    .udesc  = "Total number of uops assigned to pipe3",
++    .ucode  = 0x8,
++  },
++  { .uname  = "TOTAL2",
++    .udesc  = "Total number of uops assigned to pipe2",
++    .ucode  = 0x4,
++  },
++  { .uname  = "TOTAL1",
++    .udesc  = "Total number of uops assigned to pipe1",
++    .ucode  = 0x2,
++  },
++  { .uname  = "TOTAL0",
++    .udesc  = "Total number of uops assigned to pipe0",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_instruction_cache_lines_invalidated[]={
++  { .uname  = "L2_INVALIDATING_PROBE",
++    .udesc  = "IC line invalidated due to L2 invalidating probe (external or LS).",
++    .ucode  = 0x2,
++  },
++  { .uname  = "FILL_INVALIDATED",
++    .udesc  = "IC line invalidated due to overwriting fill response.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_instruction_pipe_stall[]={
++  { .uname  = "IC_STALL_ANY",
++    .udesc  = "IC pipe was stalled during this clock cycle for any reason (nothing valud in pipe ICM1).",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IC_STALL_DQ_EMPTY",
++    .udesc  = "IC pipe was stalled during this clock cycle (including IC to OC fetches) due to DQ empty.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IC_STALL_BACK_PRESSURE",
++    .udesc  = "IC pipe was stalled during this clock cycle (ncluding IC to OC fetches) due to back pressure.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_core_to_l2_cacheable_request_access_status[]={
++  { .uname  = "LS_RD_BLK_C_S",
++    .udesc  = "Number of data cache shared read hitting in the L2.",
++    .ucode  = 0x80,
++  },
++  { .uname  = "LS_RD_BLK_L_HIT_X",
++    .udesc  = "Number of data cache reads hitting in the L2.",
++    .ucode  = 0x40,
++  },
++  { .uname  = "LS_RD_BLK_L_HIT_S",
++    .udesc  = "Number of data cache reads hitting a shared in line in the L2.",
++    .ucode  = 0x20,
++  },
++  { .uname  = "LS_RD_BLK_X",
++    .udesc  = "Number of data cache store or state change (to exclusive) requests hitting in the L2.",
++    .ucode  = 0x10,
++  },
++  { .uname  = "LS_RD_BLK_C",
++    .udesc  = "Number of data cache fill requests missing in the L2 (all types).",
++    .ucode  = 0x8,
++  },
++  { .uname  = "IC_FILL_HIT_X",
++    .udesc  = "Number of I-cache fill requests hitting a modifiable (exclusive) line in the L2.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IC_FILL_HIT_S",
++    .udesc  = "Number of I-cache fill requests hitting a clean line in the L2.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IC_FILL_MISS",
++    .udesc  = "Number of I-cache fill requests missing the L2.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_l2_prefetch_hit_l2[]={
++  { .uname  = "ANY",
++    .udesc  = "Any L2 prefetch requests",
++    .ucode  = 0x1f,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_cycles_with_fill_pending_from_l2[]={
++  { .uname  = "L2_FILL_BUSY",
++   .udesc  = "TBD",
++    .ucode  = 0x1,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_l2_latency[]={
++  { .uname  = "L2_CYCLES_WAITING_ON_FILLS",
++    .udesc  = "TBD",
++    .ucode  = 0x1,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_requests_to_l2_group1[]={
++  { .uname  = "RD_BLK_L",
++    .udesc  = "Number of data cache reads (including software and hardware prefetches).",
++    .ucode  = 0x80,
++  },
++  { .uname  = "RD_BLK_X",
++    .udesc  = "Number of data cache stores",
++    .ucode  = 0x40,
++  },
++  { .uname  = "LS_RD_BLK_C_S",
++    .udesc  = "Number of data cache shared reads.",
++    .ucode  = 0x20,
++  },
++  { .uname  = "CACHEABLE_IC_READ",
++    .udesc  = "Number of instruction cache reads.",
++    .ucode  = 0x10,
++  },
++  { .uname  = "CHANGE_TO_X",
++    .udesc  = "Number of requests change to writable. Check L2 for current state.",
++    .ucode  = 0x8,
++  },
++  { .uname  = "PREFETCH_L2",
++    .udesc  = "TBD",
++    .ucode  = 0x4,
++  },
++  { .uname  = "L2_HW_PF",
++    .udesc  = "Number of prefetches accepted by L2 pipeline, hit or miss.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "GROUP2",
++    .udesc  = "Number of miscellaneous requests covered in more details by REQUESTS_TO_L2_GROUP1",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_requests_to_l2_group2[]={
++  { .uname  = "GROUP1",
++    .udesc  = "Number of miscellaneous requests covered in more details by REQUESTS_TO_L2_GROUP2",
++    .ucode  = 0x80,
++  },
++  { .uname  = "LS_RD_SIZED",
++    .udesc  = "Number of data cache reads sized.",
++    .ucode  = 0x40,
++  },
++  { .uname  = "LS_RD_SIZED_N_C",
++    .udesc  = "Number of data cache reads sized non-cacheable.",
++    .ucode  = 0x20,
++  },
++  { .uname  = "IC_RD_SIZED",
++    .udesc  = "Number of instruction cache reads sized.",
++    .ucode  = 0x10,
++  },
++  { .uname  = "IC_RD_SIZED_N_C",
++    .udesc  = "Number of instruction cache reads sized non-cacheable.",
++    .ucode  = 0x8,
++  },
++  { .uname  = "SMC_INVAL",
++    .udesc  = "Number of self-modifying code invalidates.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "BUS_LOCKS_ORIGINATOR",
++    .udesc  = "Number of bus locks.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "BUS_LOCKS_RESPONSES",
++    .udesc  = "Number of bus lock responses.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_ls_to_l2_wbc_requests[]={
++  { .uname  = "WCB_WRITE",
++    .udesc  = "TBD",
++    .ucode  = 0x40,
++  },
++  { .uname  = "WCB_CLOSE",
++    .udesc  = "TBD",
++    .ucode  = 0x20,
++  },
++  { .uname  = "CACHE_LINE_FLUSH",
++    .udesc  = "TBD",
++    .ucode  = 0x10,
++  },
++  { .uname  = "I_LINE_FLUSH",
++    .udesc  = "TBD",
++    .ucode  = 0x8,
++  },
++  { .uname  = "ZERO_BYTE_STORE",
++    .udesc  = "TBD",
++    .ucode  = 0x4,
++  },
++  { .uname  = "LOCAL_IC_CLR",
++    .udesc  = "TBD",
++    .ucode  = 0x2,
++  },
++  { .uname  = "C_L_ZERO",
++    .udesc  = "TBD",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_bad_status_2[]={
++  { .uname  = "STLI_OTHER",
++    .udesc  = "Store-to-load conflicts. A load was unable to complete due to a non-forwardable conflict with an older store.",
++    .ucode  = 0x2,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_retired_lock_instructions[]={
++  { .uname  = "CACHEABLE_LOCKS",
++    .udesc  = "Lock in cacheable memory region.",
++    .ucode  = 0xe,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_tlb_flushes[]={
++  { .uname  = "ANY",
++    .udesc  = "ANY TLB flush.",
++    .ucode  = 0xff,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_ls_dispatch[]={
++  { .uname  = "LD_ST_DISPATCH",
++    .udesc  = "Load/Store single uops dispatched (compare-and-exchange).",
++    .ucode  = 0x4,
++  },
++  { .uname  = "STORE_DISPATCH",
++    .udesc  = "Store uops dispatched.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "LD_DISPATCH",
++    .udesc  = "Load uops dispatched.",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_ineffective_software_prefetch[]={
++  { .uname  = "MAB_MCH_CNT",
++    .udesc  = "Software prefetch instructions saw a match on an already allocated miss request buffer.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "DATA_PIPE_SW_PF_DC_HIT",
++    .udesc  = "Software Prefetch instruction saw a DC hit",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_software_prefetch_data_cache_fills[]={
++  { .uname  = "MABRESP_LCL_L2",
++    .udesc  = "Fill from local L2.",
++    .ucode  = 0x1,
++  },
++  { .uname  = "LS_MABRESP_LCL_CACHE",
++    .udesc  = "Fill from another cache (home node local).",
++    .ucode  = 0x2,
++  },
++  { .uname  = "LS_MABRESP_LCL_DRAM",
++    .udesc  = "Fill from DRAM (home node local).",
++    .ucode  = 0x8,
++  },
++  { .uname  = "LS_MABRESP_LCL_RMT_CACHE",
++    .udesc  = "Fill from another cache (home node remote).",
++    .ucode  = 0x10,
++  },
++  { .uname  = "LS_MABRESP_LCL_RMT_DRAM",
++    .udesc  = "Fill from DRAM (home node remote).",
++    .ucode  = 0x40,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_store_commit_cancels_2[]={
++  { .uname  = "WCB_FULL",
++    .udesc  = "Non cacheable store and the non-cacheable commit buffer is full.",
++    .ucode  = 0x1,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_l1_dtlb_miss[]={
++  { .uname  = "TLB_RELOAD_1G_L2_MISS",
++    .udesc  = "Data TLB reload to a 1GB page that missed in the L2 TLB",
++    .ucode  = 0x80,
++  },
++  { .uname  = "TLB_RELOAD_2M_L2_MISS",
++    .udesc  = "Data TLB reload to a 2MB page that missed in the L2 TLB",
++    .ucode  = 0x40,
++  },
++  { .uname  = "TLB_RELOAD_COALESCED_PAGE_MISS",
++    .udesc  = "Data TLB reload to coalesced pages that missed",
++    .ucode  = 0x20,
++  },
++  { .uname  = "TLB_RELOAD_4K_L2_MISS",
++    .udesc  = "Data TLB reload to a 4KB page that missed in the L2 TLB",
++    .ucode  = 0x10,
++  },
++  { .uname  = "TLB_RELOAD_1G_L2_HIT",
++    .udesc  = "Data TLB reload to a 1GB page that hit in the L2 TLB",
++    .ucode  = 0x8,
++  },
++  { .uname  = "TLB_RELOAD_2M_L2_HIT",
++    .udesc  = "Data TLB reload to a 2MB page that hit in the L2 TLB",
++    .ucode  = 0x4,
++  },
++  { .uname  = "TLB_RELOAD_COALESCED_PAGE_HIT",
++    .udesc  = "Data TLB reload to coalesced pages that hit",
++    .ucode  = 0x2,
++  },
++  { .uname  = "TLB_RELOAD_4K_L2_HIT",
++    .udesc  = "Data TLB reload to a 4KB page thta hit in the L2 TLB",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_locks[]={
++  { .uname  = "SPEC_LOCK_MAP_COMMIT",
++    .udesc  = "TBD",
++    .ucode  = 0x8,
++  },
++  { .uname  = "SPEC_LOCK",
++    .udesc  = "TBD",
++    .ucode  = 0x4,
++  },
++  { .uname  = "NON_SPEC_LOCK",
++    .udesc  = "TBD",
++    .ucode  = 0x2,
++  },
++  { .uname  = "BUS_LOCK",
++    .udesc  = "TBD",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_mab_allocation_by_pipe[]={
++  { .uname  = "TLB_PIPE_EARLY",
++    .udesc  = "TBD",
++    .ucode  = 0x10,
++  },
++  { .uname  = "HW_PF",
++    .udesc  = "hw_pf",
++    .ucode  = 0x8,
++  },
++  { .uname  = "TLB_PIPE_LATE",
++    .udesc  = "TBD",
++    .ucode  = 0x4,
++  },
++  { .uname  = "ST_PIPE",
++    .udesc  = "TBD",
++    .ucode  = 0x2,
++  },
++  { .uname  = "DATA_PIPE",
++    .udesc  = "TBD",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_prefetch_instructions_dispatched[]={
++  { .uname  = "ANY",
++    .udesc  = "Any prefetch",
++    .ucode  = 0xff,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_tablewalker_allocation[]={
++  { .uname  = "ALLOC_ISIDE1",
++    .udesc  = "TBD",
++    .ucode  = 0x8,
++  },
++  { .uname  = "ALLOC_ISIDE0",
++    .udesc  = "TBD",
++    .ucode  = 0x4,
++  },
++  { .uname  = "ALLOC_DSIDE1",
++    .udesc  = "TBD",
++    .ucode  = 0x2,
++  },
++  { .uname  = "ALLOC_DSIDE0",
++    .udesc  = "TBD",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_oc_mode_switch[]={
++  { .uname  = "OC_IC_MODE_SWITCH",
++    .udesc  = "TBD",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IC_OC_MODE_SWITCH",
++    .udesc  = "TBD",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_uops_dispatched_from_decoder[]={
++  { .uname  = "DECODER_DISPATCHED",
++    .udesc  = "Number of uops dispatched from the Decoder",
++    .ucode  = 0x1,
++  },
++  { .uname  = "OPCACHE_DISPATCHED",
++    .udesc  = "Number of uops dispatched from the OpCache",
++    .ucode  = 0x2,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_dispatch_resource_stall_cycles_1[]={
++  { .uname  = "INT_PHY_REG_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to integer physical register file resource stalls. Applies to all uops that have integer destination register.",
++    .ucode  = 0x1,
++  },
++  { .uname  = "LOAD_QUEUE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to load queue resource stalls. Applies to all uops with load semantics.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "STORE_QUEUE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to store queue resource stalls. Applies to all uops with store semantics.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "INT_SCHEDULER_MISC_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to integer scheduler miscellaneous resource stalls.",
++    .ucode  = 0x8,
++  },
++  { .uname  = "TAKEN_BRANCH_BUFFER_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to taken branch buffer resource stalls.",
++    .ucode  = 0x10,
++  },
++  { .uname  = "FP_REG_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point register file resource stalls.",
++    .ucode  = 0x20,
++  },
++  { .uname  = "FP_SCHEDULER_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point scheduler resource stalls.",
++    .ucode  = 0x40,
++  },
++  { .uname  = "FP_MISC_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point miscellaneous resource unavailable.",
++    .ucode  = 0x80,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen2_dispatch_resource_stall_cycles_0[]={
++  { .uname  = "ALU_TOKEN_STALL",
++    .udesc  = "Number of cycles ALU tokens total unavailable.",
++    .ucode  = 0x8,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_entry_t amd64_fam17h_zen2_pe[]={
++  { .name   = "L1_ITLB_MISS_L2_ITLB_HIT",
++    .desc   = "Number of instruction fetches that miss in the L1 ITLB but hit in the L2 ITLB.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x84,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "L1_ITLB_MISS_L2_ITLB_MISS",
++    .desc   = "Number of instruction fetches that miss in both the L1 and L2 TLBs.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x85,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_l1_itlb_miss_l2_itlb_miss),
++    .umasks = amd64_fam17h_zen2_l1_itlb_miss_l2_itlb_miss,
++  },
++  { .name   = "DIV_CYCLES_BUSY_COUNT",
++    .desc   = "Number of cycles when the divider is busy.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xd3,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "DIV_OP_COUNT",
++    .desc   = "Number of divide uops.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xd4,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_BRANCH_INSTRUCTIONS",
++    .desc   = "Number of branch instructions retired. This includes all types of architectural control flow changes, including exceptions and interrupts.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc2,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_FAR_CONTROL_TRANSFERS",
++    .desc   = "Number of far control transfers retired including far call/jump/return, IRET, SYSCALL and SYSRET, plus exceptions and interrupts. Far control transfers are not subject to branch prediction.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc6,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_INDIRECT_BRANCH_INSTRUCTIONS_MISPREDICTED",
++    .desc   = "Number of indirect branches retired there were not correctly predicted. Each such mispredict incurs the same penalty as a mispredicted condition branch instruction. Only EX mispredicts are counted.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xca,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_BRANCH_INSTRUCTIONS_MISPREDICTED",
++    .desc   = "Number of branch instructions retired, of any type, that were not correctly predicted. This includes those for which prediction is not attempted (far control transfers, exceptions and interrupts).",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc3,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_TAKEN_BRANCH_INSTRUCTIONS",
++    .desc   = "Number of taken branches that were retired. This includes all types of architectural control flow changes, including exceptions and interrupts.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc4,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_TAKEN_BRANCH_INSTRUCTIONS_MISPREDICTED",
++    .desc   = "Number of retired taken branch instructions that were mispredicted.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc5,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_CONDITIONAL_BRANCH_INSTRUCTIONS",
++    .desc   = "Number of retired conditional branch instructions.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xd1,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_UOPS",
++    .desc   = "Number of uops retired. This includes all processor activity (instructions, exceptions, interrupts, microcode assists, etc.). The number of events logged per cycle can vary from 0 to 8.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc1,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_FUSED_INSTRUCTIONS",
++    .desc   = "Number of fused retired branch instructions retired per cycle. The number of events logged per cycle can vary from 0 to 3.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x1d0,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_INSTRUCTIONS",
++    .desc   = "Instructions Retired.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc0,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_MMX_FP_INSTRUCTIONS",
++    .desc   = "Number of MMX, SSE or x87 instructions retired. The UnitMask allows the selection of the individual classes of instructions as given in the table. Each increment represents one complete instruction. Since this event includes non-numeric instructions, it is not suitable for measuring MFLOPS.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xcb,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_retired_mmx_fp_instructions),
++    .umasks = amd64_fam17h_zen2_retired_mmx_fp_instructions,
++  },
++  { .name   = "RETIRED_NEAR_RETURNS",
++    .desc   = "Number of near return instructions (RET or RETI) retired.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc8,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_NEAR_RETURNS_MISPREDICTED",
++    .desc   = "Number of near returns retired that were not correctly predicted by the return address predictor. Each such mispredict incurs the same penalty as a mispredicted conditional branch instruction.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xc9,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "TAGGED_IBS_OPS",
++    .desc   = "TBD",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x1cf,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_tagged_ibs_ops),
++    .umasks = amd64_fam17h_zen2_tagged_ibs_ops,
++  },
++  { .name   = "INSTRUCTION_CACHE_REFILLS_FROM_L2",
++    .desc   = "Number of 64-byte instruction cachelines that was fulfilled by the L2 cache.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x82,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "INSTRUCTION_CACHE_REFILLS_FROM_SYSTEM",
++    .desc   = "Number of 64-byte instruction cachelines fulfilled from system memory or another cache.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x83,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "CORE_TO_L2_CACHEABLE_REQUEST_ACCESS_STATUS",
++    .desc   = "L2 cache request outcomes. This event does not count accesses to the L2 cache by the L2 prefetcher.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x64,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_core_to_l2_cacheable_request_access_status),
++    .umasks = amd64_fam17h_zen2_core_to_l2_cacheable_request_access_status,
++  },
++  { .name   = "L2_PREFETCH_HIT_L2",
++    .desc   = "Number of L2 prefetcher hits in the L2",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x70,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_l2_prefetch_hit_l2),
++    .umasks = amd64_fam17h_zen2_l2_prefetch_hit_l2,
++  },
++  { .name   = "L2_PREFETCH_HIT_L3",
++    .desc   = "Number of L2 prefetcher hits in the L3",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x71,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_l2_prefetch_hit_l2),
++    .umasks = amd64_fam17h_zen2_l2_prefetch_hit_l2, /* shared */
++  },
++  { .name   = "REQUESTS_TO_L2_GROUP1",
++    .desc   = "TBD",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x60,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_requests_to_l2_group1),
++    .umasks = amd64_fam17h_zen2_requests_to_l2_group1,
++  },
++  { .name   = "REQUESTS_TO_L2_GROUP2",
++    .desc   = "Multi-events in that LS and IF requests can be received simultaneous.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x61,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_requests_to_l2_group2),
++    .umasks = amd64_fam17h_zen2_requests_to_l2_group2,
++  },
++  { .name   = "BAD_STATUS_2",
++    .desc   = "TBD",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x24,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_bad_status_2),
++    .umasks = amd64_fam17h_zen2_bad_status_2,
++  },
++  { .name   = "LS_DISPATCH",
++    .desc   = "Counts the number of operations dispatched to the LS unit. Unit Masks ADDed.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x29,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_ls_dispatch),
++    .umasks = amd64_fam17h_zen2_ls_dispatch,
++  },
++  { .name   = "INEFFECTIVE_SOFTWARE_PREFETCH",
++    .desc   = "Number of software prefetches that did not fetch data outside of the processor core.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x52,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_ineffective_software_prefetch),
++    .umasks = amd64_fam17h_zen2_ineffective_software_prefetch,
++  },
++  { .name   = "SOFTWARE_PREFETCH_DATA_CACHE_FILLS",
++    .desc   = "Number of software prefetches fills by data source",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x59,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam17h_zen2_software_prefetch_data_cache_fills,
++  },
++  { .name   = "HARDWARE_PREFETCH_DATA_CACHE_FILLS",
++    .desc   = "Number of hardware prefetches fills by data source",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x5a,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam17h_zen2_software_prefetch_data_cache_fills, /* shared */
++  },
++  { .name   = "L1_DTLB_MISS",
++    .desc   = "L1 Data TLB misses.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x45,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_l1_dtlb_miss),
++    .umasks = amd64_fam17h_zen2_l1_dtlb_miss,
++  },
++  { .name   = "RETIRED_LOCK_INSTRUCTIONS",
++    .desc   = "Counts the number of retired locked instructions",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x25,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_retired_lock_instructions),
++    .umasks = amd64_fam17h_zen2_retired_lock_instructions,
++  },
++  { .name   = "RETIRED_CLFLUSH_INSTRUCTIONS",
++    .desc   = "Counts the number of retired non-speculative clflush instructions",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x26,
++    .flags   = 0,
++  },
++  { .name   = "RETIRED_CPUID_INSTRUCTIONS",
++    .desc   = "Counts the number of retired cpuid instructions",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x27,
++    .flags   = 0,
++  },
++  { .name   = "SMI_RECEIVED",
++    .desc   = "Counts the number system management interrupts (SMI) received",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x2b,
++    .flags   = 0,
++  },
++  { .name   = "INTERRUPT_TAKEN",
++    .desc   = "Counts the number of interrupts taken",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x2c,
++    .flags   = 0,
++  },
++  { .name   = "MAB_ALLOCATION_BY_PIPE",
++    .desc   = "TBD",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x41,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_mab_allocation_by_pipe),
++    .umasks = amd64_fam17h_zen2_mab_allocation_by_pipe,
++  },
++  { .name   = "MISALIGNED_LOADS",
++    .desc   = "Misaligned loads retired",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x47,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "CYCLES_NOT_IN_HALT",
++    .desc   = "Number of core cycles not in halted state",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x76,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "TLB_FLUSHES",
++    .desc   = "Number of TLB flushes",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x78,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_tlb_flushes),
++    .umasks = amd64_fam17h_zen2_tlb_flushes,
++  },
++  { .name   = "PREFETCH_INSTRUCTIONS_DISPATCHED",
++    .desc   = "Software Prefetch Instructions Dispatched. This is a speculative event",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x4b,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_prefetch_instructions_dispatched),
++    .umasks = amd64_fam17h_zen2_prefetch_instructions_dispatched,
++  },
++  { .name   = "STORE_TO_LOAD_FORWARD",
++    .desc   = "Number of STore Lad Forward hits.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x35,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "STORE_COMMIT_CANCELS_2",
++    .desc   = "Number of store commit cancellations",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x37,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_store_commit_cancels_2),
++    .umasks = amd64_fam17h_zen2_store_commit_cancels_2,
++  },
++  { .name   = "L1_BTB_CORRECTION",
++    .desc   = "Number of L1 branch prediction overrides of existing prediction. This is a speculative event.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x8a,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "L2_BTB_CORRECTION",
++    .desc   = "Number of L2 branch prediction overrides of existing prediction. This is a speculative event.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x8b,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "DYNAMIC_INDIRECT_PREDICTIONS",
++    .desc   = "Number of indirect branch prediction for potential multi-target branch. This is a speculative event.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x8e,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "DECODER_OVERRIDE_BRANCH_PRED",
++    .desc   = "Numbner of decoder overrides of existing brnach prediction. This is a speculative event.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x91,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "ITLB_FETCH_HIT",
++    .desc   = "Instruction fetches that hit in the L1 ITLB",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x94,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_itlb_fetch_hit),
++    .umasks = amd64_fam17h_zen2_itlb_fetch_hit,
++  },
++  { .name   = "UOPS_QUEUE_EMPTY",
++    .desc   = "Cycles where the uops queue is empty",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xa9,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "UOPS_DISPATCHED_FROM_DECODER",
++    .desc   = "Number of uops dispatched from either the Decoder, OpCache or both",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xaa,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_uops_dispatched_from_decoder),
++    .umasks = amd64_fam17h_zen2_uops_dispatched_from_decoder,
++  },
++  { .name   = "DISPATCH_RESOURCE_STALL_CYCLES_1",
++    .desc   = "Number of cycles where a dispatch group is valid but does not get dispatched due to a Token Stall",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xae,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_dispatch_resource_stall_cycles_1),
++    .umasks = amd64_fam17h_zen2_dispatch_resource_stall_cycles_1,
++  },
++  { .name   = "DISPATCH_RESOURCE_STALL_CYCLES_0",
++    .desc   = "Number of cycles where a dispatch group is valid but does not get dispatched due to a Token Stall",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xaf,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_dispatch_resource_stall_cycles_0),
++    .umasks = amd64_fam17h_zen2_dispatch_resource_stall_cycles_0,
++  },
++};
+diff --git a/lib/pfmlib_amd64.c b/lib/pfmlib_amd64.c
+index 29efd08..3d97c98 100644
+--- a/lib/pfmlib_amd64.c
++++ b/lib/pfmlib_amd64.c
+@@ -174,7 +174,13 @@ amd64_get_revision(pfm_amd64_config_t *cfg)
+ 	} else if (cfg->family == 21) { /* family 15h */
+ 		rev = PFM_PMU_AMD64_FAM15H_INTERLAGOS;
+ 	} else if (cfg->family == 23) { /* family 17h */
+-		rev = PFM_PMU_AMD64_FAM17H_ZEN1;
++                switch (cfg->model) {
++                case 49:
++			rev = PFM_PMU_AMD64_FAM17H_ZEN2;
++			break;
++                default:
++                        rev = PFM_PMU_AMD64_FAM17H_ZEN1;
++                }
+ 	} else if (cfg->family == 22) { /* family 16h */
+ 		rev = PFM_PMU_AMD64_FAM16H;
+ 	}
+diff --git a/lib/pfmlib_amd64_fam17h.c b/lib/pfmlib_amd64_fam17h.c
+index ea67f79..f35af92 100644
+--- a/lib/pfmlib_amd64_fam17h.c
++++ b/lib/pfmlib_amd64_fam17h.c
+@@ -27,6 +27,7 @@
+ #include "pfmlib_priv.h"
+ #include "pfmlib_amd64_priv.h"
+ #include "events/amd64_events_fam17h_zen1.h"
++#include "events/amd64_events_fam17h_zen2.h"
+ 
+ /*
+  * This function detects ZEN1 for the deprecated
+@@ -102,3 +103,30 @@ pfmlib_pmu_t amd64_fam17h_zen1_support={
+ 	 PFMLIB_VALID_PERF_PATTRS(pfm_amd64_perf_validate_pattrs),
+ 	.get_event_nattrs	= pfm_amd64_get_event_nattrs,
+ };
++
++pfmlib_pmu_t amd64_fam17h_zen2_support={
++	.desc			= "AMD64 Fam17h Zen2",
++	.name			= "amd64_fam17h_zen2",
++	.pmu			= PFM_PMU_AMD64_FAM17H_ZEN2,
++	.pmu_rev		= 0,
++	.pme_count		= LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_pe),
++	.type			= PFM_PMU_TYPE_CORE,
++	.supported_plm		= AMD64_FAM10H_PLM,
++	.num_cntrs		= 6,
++	.max_encoding		= 1,
++	.pe			= amd64_fam17h_zen2_pe,
++	.atdesc			= amd64_mods,
++	.flags			= PFMLIB_PMU_FL_RAW_UMASK,
++	.cpu_family		= PFM_PMU_AMD64_FAM17H_ZEN2,
++	.pmu_detect		= pfm_amd64_family_detect,
++	.get_event_encoding[PFM_OS_NONE] = pfm_amd64_get_encoding,
++	 PFMLIB_ENCODE_PERF(pfm_amd64_get_perf_encoding),
++	.get_event_first	= pfm_amd64_get_event_first,
++	.get_event_next		= pfm_amd64_get_event_next,
++	.event_is_valid		= pfm_amd64_event_is_valid,
++	.validate_table		= pfm_amd64_validate_table,
++	.get_event_info		= pfm_amd64_get_event_info,
++	.get_event_attr_info	= pfm_amd64_get_event_attr_info,
++	 PFMLIB_VALID_PERF_PATTRS(pfm_amd64_perf_validate_pattrs),
++	.get_event_nattrs	= pfm_amd64_get_event_nattrs,
++};
+diff --git a/lib/pfmlib_common.c b/lib/pfmlib_common.c
+index 3f2d689..19e2060 100644
+--- a/lib/pfmlib_common.c
++++ b/lib/pfmlib_common.c
+@@ -80,6 +80,7 @@ static pfmlib_pmu_t *pfmlib_pmus[]=
+ 	&amd64_fam16h_support,
+ 	&amd64_fam17h_deprecated_support,
+ 	&amd64_fam17h_zen1_support,
++	&amd64_fam17h_zen2_support,
+ 	&intel_core_support,
+ 	&intel_atom_support,
+ 	&intel_nhm_support,
+diff --git a/lib/pfmlib_priv.h b/lib/pfmlib_priv.h
+index ea618ae..75b935a 100644
+--- a/lib/pfmlib_priv.h
++++ b/lib/pfmlib_priv.h
+@@ -250,6 +250,7 @@ extern pfmlib_pmu_t amd64_fam15h_nb_support;
+ extern pfmlib_pmu_t amd64_fam16h_support;
+ extern pfmlib_pmu_t amd64_fam17h_deprecated_support;
+ extern pfmlib_pmu_t amd64_fam17h_zen1_support;
++extern pfmlib_pmu_t amd64_fam17h_zen2_support;
+ extern pfmlib_pmu_t intel_p6_support;
+ extern pfmlib_pmu_t intel_ppro_support;
+ extern pfmlib_pmu_t intel_pii_support;
+diff --git a/tests/validate_x86.c b/tests/validate_x86.c
+index af5f664..36896df 100644
+--- a/tests/validate_x86.c
++++ b/tests/validate_x86.c
+@@ -6932,6 +6932,36 @@ static const test_event_t x86_test_events[]={
+ 	  .codes[0] = 0x0825,
+ 	  .fstr = "knm_unc_m2pcie::UNC_M2P_EGRESS_CYCLES_FULL:AD_1",
+ 	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen2::retired_uops",
++	  .count = 1,
++	  .codes[0] = 0x5300c1ull,
++	  .fstr = "amd64_fam17h_zen2::RETIRED_UOPS:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen2::cycles_not_in_halt",
++	  .count = 1,
++	  .codes[0] = 0x530076ull,
++	  .fstr = "amd64_fam17h_zen2::CYCLES_NOT_IN_HALT:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen2::L2_PREFETCH_HIT_L2",
++	  .count = 1,
++	  .codes[0] = 0x531f70ull,
++	  .fstr = "amd64_fam17h_zen2::L2_PREFETCH_HIT_L2:ANY:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen2::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:u",
++	  .count = 1,
++	  .codes[0] = 0x510845ull,
++	  .fstr = "amd64_fam17h_zen2::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen2::RETIRED_FUSED_INSTRUCTIONS",
++	  .count = 1,
++	  .codes[0] = 0x1005300d0ull,
++	  .fstr = "amd64_fam17h_zen2::RETIRED_FUSED_INSTRUCTIONS:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
+ };
+ 
+ #define NUM_TEST_EVENTS (int)(sizeof(x86_test_events)/sizeof(test_event_t))
+
+commit 9982ae5470c20caa716a243bee6bc98a2fba4bfe
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Fri Jan 3 08:27:14 2020 -0800
+
+    various AMD Fam17h fixes
+    
+    This patches fixes:
+     - typos in the new AMD Zen1/Zen2 support man page for libpfm_amd64_fam17.3
+     - typos in lib/pfmlib_amd64_fam17.c
+     - obsolete umask_t arrays for AMD Zen2 event table
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/docs/man3/libpfm_amd64_fam17h.3 b/docs/man3/libpfm_amd64_fam17h.3
+index 7925db2..5029669 100644
+--- a/docs/man3/libpfm_amd64_fam17h.3
++++ b/docs/man3/libpfm_amd64_fam17h.3
+@@ -10,7 +10,7 @@ libpfm_amd64_fam17h - support for AMD64 Family 17h processors
+ .sp
+ .SH DESCRIPTION
+ The library supports AMD Family 17h processors Zen1 core PMU in both 32 and 64-bit modes.
+-The amd64_fam17h PMU model name has been deprecated in favor of amd_fam17_zen1. The old
++The amd64_fam17h PMU model name has been deprecated in favor of amd_fam17h_zen1. The old
+ name is maintained for backward compatibility reasons, but should not be used anymore.
+ 
+ .SH MODIFIERS
+diff --git a/lib/events/amd64_events_fam17h_zen2.h b/lib/events/amd64_events_fam17h_zen2.h
+index 87dfff0..c832bce 100644
+--- a/lib/events/amd64_events_fam17h_zen2.h
++++ b/lib/events/amd64_events_fam17h_zen2.h
+@@ -84,157 +84,6 @@ static const amd64_umask_t amd64_fam17h_zen2_tagged_ibs_ops[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_zen2_number_of_move_elimination_and_scalar_op_optimization[]={
+-  { .uname  = "OPTIMIZED",
+-    .udesc  = "Number of scalar ops optimized.",
+-    .ucode  = 0x8,
+-  },
+-  { .uname  = "OPT_POTENTIAL",
+-    .udesc  = "Number of ops that are candidates for optimization (have z-bit either set or pass.",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "SSE_MOV_OPS_ELIM",
+-    .udesc  = "Number of SSE move ops eliminated.",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "SSE_MOV_OPS",
+-    .udesc  = "Number of SSE move ops.",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_retired_sse_avx_operations[]={
+-  { .uname  = "MAC_FLOPS",
+-    .udesc  = "Mac flops. MAC FLOPS count as 2 FLOPS.",
+-    .ucode  = 0x8,
+-  },
+-  { .uname  = "DIV_FLOPS",
+-    .udesc  = "Divide/square root flops.",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "MULT_FLOPS",
+-    .udesc  = "Multiply flops.",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "ADD_SUB_FLOPS",
+-    .udesc  = "Add/subtract flops.",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_retired_serializing_ops[]={
+-  { .uname  = "X87_CTRL_RET",
+-    .udesc  = "X87 control word mispredict traps due to mispredction in RC or PC, or changes in mask bits.",
+-    .ucode  = 0x1,
+-  },
+-  { .uname  = "X87_BOT_RET",
+-    .udesc  = "X87 bottom-executing uops retired.",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "SSE_CTRL_RET",
+-    .udesc  = "SSE control word mispreduct traps due to mispredctions in RC, FTZ or DAZ or changes in mask bits.",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "SSE_BOT_RET",
+-    .udesc  = "SSE bottom-executing uops retired.",
+-    .ucode  = 0x8,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_fp_dispatch_faults[]={
+-  { .uname  = "X87_FULL_FAULT",
+-    .udesc  = "X87 fill faults",
+-    .ucode  = 0x1,
+-  },
+-  { .uname  = "XMM_FILL_FAULT",
+-    .udesc  = "XMM fill faults",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "YMM_FILL_FAULT",
+-    .udesc  = "YMM fill faults",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "YMM_SPILL_FAULT",
+-    .udesc  = "YMM spill faults",
+-    .ucode  = 0x8,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_retired_x87_floating_point_operations[]={
+-  { .uname  = "DIV_SQR_R_OPS",
+-    .udesc  = "Divide and square root ops",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "MUL_OPS",
+-    .udesc  = "Multiple ops",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "ADD_SUB_OPS",
+-    .udesc  = "Add/subtract ops",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_fpu_pipe_assignment[]={
+-  { .uname  = "DUAL3",
+-    .udesc  = "Total number of multi-pipe uops assigned to pipe3",
+-    .ucode  = 0x80,
+-  },
+-  { .uname  = "DUAL2",
+-    .udesc  = "Total number of multi-pipe uops assigned to pipe2",
+-    .ucode  = 0x40,
+-  },
+-  { .uname  = "DUAL1",
+-    .udesc  = "Total number of multi-pipe uops assigned to pipe1",
+-    .ucode  = 0x20,
+-  },
+-  { .uname  = "DUAL0",
+-    .udesc  = "Total number of multi-pipe uops assigned to pipe0",
+-    .ucode  = 0x10,
+-  },
+-  { .uname  = "TOTAL3",
+-    .udesc  = "Total number of uops assigned to pipe3",
+-    .ucode  = 0x8,
+-  },
+-  { .uname  = "TOTAL2",
+-    .udesc  = "Total number of uops assigned to pipe2",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "TOTAL1",
+-    .udesc  = "Total number of uops assigned to pipe1",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "TOTAL0",
+-    .udesc  = "Total number of uops assigned to pipe0",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_instruction_cache_lines_invalidated[]={
+-  { .uname  = "L2_INVALIDATING_PROBE",
+-    .udesc  = "IC line invalidated due to L2 invalidating probe (external or LS).",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "FILL_INVALIDATED",
+-    .udesc  = "IC line invalidated due to overwriting fill response.",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_instruction_pipe_stall[]={
+-  { .uname  = "IC_STALL_ANY",
+-    .udesc  = "IC pipe was stalled during this clock cycle for any reason (nothing valud in pipe ICM1).",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "IC_STALL_DQ_EMPTY",
+-    .udesc  = "IC pipe was stalled during this clock cycle (including IC to OC fetches) due to DQ empty.",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "IC_STALL_BACK_PRESSURE",
+-    .udesc  = "IC pipe was stalled during this clock cycle (ncluding IC to OC fetches) due to back pressure.",
+-    .ucode  = 0x1,
+-  },
+-};
+ 
+ static const amd64_umask_t amd64_fam17h_zen2_core_to_l2_cacheable_request_access_status[]={
+   { .uname  = "LS_RD_BLK_C_S",
+@@ -279,21 +128,6 @@ static const amd64_umask_t amd64_fam17h_zen2_l2_prefetch_hit_l2[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_zen2_cycles_with_fill_pending_from_l2[]={
+-  { .uname  = "L2_FILL_BUSY",
+-   .udesc  = "TBD",
+-    .ucode  = 0x1,
+-    .uflags = AMD64_FL_DFL,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_l2_latency[]={
+-  { .uname  = "L2_CYCLES_WAITING_ON_FILLS",
+-    .udesc  = "TBD",
+-    .ucode  = 0x1,
+-    .uflags = AMD64_FL_DFL,
+-  },
+-};
+ 
+ static const amd64_umask_t amd64_fam17h_zen2_requests_to_l2_group1[]={
+   { .uname  = "RD_BLK_L",
+@@ -365,37 +199,6 @@ static const amd64_umask_t amd64_fam17h_zen2_requests_to_l2_group2[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_zen2_ls_to_l2_wbc_requests[]={
+-  { .uname  = "WCB_WRITE",
+-    .udesc  = "TBD",
+-    .ucode  = 0x40,
+-  },
+-  { .uname  = "WCB_CLOSE",
+-    .udesc  = "TBD",
+-    .ucode  = 0x20,
+-  },
+-  { .uname  = "CACHE_LINE_FLUSH",
+-    .udesc  = "TBD",
+-    .ucode  = 0x10,
+-  },
+-  { .uname  = "I_LINE_FLUSH",
+-    .udesc  = "TBD",
+-    .ucode  = 0x8,
+-  },
+-  { .uname  = "ZERO_BYTE_STORE",
+-    .udesc  = "TBD",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "LOCAL_IC_CLR",
+-    .udesc  = "TBD",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "C_L_ZERO",
+-    .udesc  = "TBD",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+ static const amd64_umask_t amd64_fam17h_zen2_bad_status_2[]={
+   { .uname  = "STLI_OTHER",
+     .udesc  = "Store-to-load conflicts. A load was unable to complete due to a non-forwardable conflict with an older store.",
+@@ -512,25 +315,6 @@ static const amd64_umask_t amd64_fam17h_zen2_l1_dtlb_miss[]={
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_zen2_locks[]={
+-  { .uname  = "SPEC_LOCK_MAP_COMMIT",
+-    .udesc  = "TBD",
+-    .ucode  = 0x8,
+-  },
+-  { .uname  = "SPEC_LOCK",
+-    .udesc  = "TBD",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "NON_SPEC_LOCK",
+-    .udesc  = "TBD",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "BUS_LOCK",
+-    .udesc  = "TBD",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+ static const amd64_umask_t amd64_fam17h_zen2_mab_allocation_by_pipe[]={
+   { .uname  = "TLB_PIPE_EARLY",
+     .udesc  = "TBD",
+@@ -562,36 +346,6 @@ static const amd64_umask_t amd64_fam17h_zen2_prefetch_instructions_dispatched[]=
+   },
+ };
+ 
+-static const amd64_umask_t amd64_fam17h_zen2_tablewalker_allocation[]={
+-  { .uname  = "ALLOC_ISIDE1",
+-    .udesc  = "TBD",
+-    .ucode  = 0x8,
+-  },
+-  { .uname  = "ALLOC_ISIDE0",
+-    .udesc  = "TBD",
+-    .ucode  = 0x4,
+-  },
+-  { .uname  = "ALLOC_DSIDE1",
+-    .udesc  = "TBD",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "ALLOC_DSIDE0",
+-    .udesc  = "TBD",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+-static const amd64_umask_t amd64_fam17h_zen2_oc_mode_switch[]={
+-  { .uname  = "OC_IC_MODE_SWITCH",
+-    .udesc  = "TBD",
+-    .ucode  = 0x2,
+-  },
+-  { .uname  = "IC_OC_MODE_SWITCH",
+-    .udesc  = "TBD",
+-    .ucode  = 0x1,
+-  },
+-};
+-
+ static const amd64_umask_t amd64_fam17h_zen2_uops_dispatched_from_decoder[]={
+   { .uname  = "DECODER_DISPATCHED",
+     .udesc  = "Number of uops dispatched from the Decoder",
+diff --git a/lib/pfmlib_amd64_fam17h.c b/lib/pfmlib_amd64_fam17h.c
+index f35af92..000c902 100644
+--- a/lib/pfmlib_amd64_fam17h.c
++++ b/lib/pfmlib_amd64_fam17h.c
+@@ -51,7 +51,7 @@ pfm_amd64_family_detect_zen1(void *this)
+  * Should use amd_fam17h_zen1 instead.
+  */
+ pfmlib_pmu_t amd64_fam17h_deprecated_support={
+-	.desc			= "AMD64 Fam17h Zen1 (deprecated - use amd_fam17_zen1 instead)",
++	.desc			= "AMD64 Fam17h Zen1 (deprecated - use amd_fam17h_zen1 instead)",
+ 	.name			= "amd64_fam17h",
+ 	.pmu			= PFM_PMU_AMD64_FAM17H,
+ 	.pmu_rev		= 0,
+
+commit fc49676f3f5315b43ae8016151c3d5ba030567f8
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Wed Jan 8 14:03:19 2020 -0800
+
+    fix some AMD Zen1 and Zen2 comment typos
+    
+    The events files for Zen1 and Zen2 had some typos in comments, so fix that.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen1.h b/lib/events/amd64_events_fam17h_zen1.h
+index 218ee8f..c6a5852 100644
+--- a/lib/events/amd64_events_fam17h_zen1.h
++++ b/lib/events/amd64_events_fam17h_zen1.h
+@@ -21,7 +21,7 @@
+  * This file is part of libpfm, a performance monitoring support library for
+  * applications on Linux.
+  *
+- * PMU: amd64_fam17h (AMD64 Fam17h))
++ * PMU: amd64_fam17h_zen1 (AMD64 Fam17h Zen1))
+  */
+ 
+ static const amd64_umask_t amd64_fam17h_zen1_l1_itlb_miss_l2_itlb_miss[]={
+diff --git a/lib/events/amd64_events_fam17h_zen2.h b/lib/events/amd64_events_fam17h_zen2.h
+index c832bce..b269268 100644
+--- a/lib/events/amd64_events_fam17h_zen2.h
++++ b/lib/events/amd64_events_fam17h_zen2.h
+@@ -21,7 +21,7 @@
+  * This file is part of libpfm, a performance monitoring support library for
+  * applications on Linux.
+  *
+- * PMU: amd64_fam17h_zen2_zen2 (AMD64 Fam17h Zen2))
++ * PMU: amd64_fam17h_zen2 (AMD64 Fam17h Zen2))
+  */
+ 
+ static const amd64_umask_t amd64_fam17h_zen2_l1_itlb_miss_l2_itlb_miss[]={
+
+commit ca5321232c20201b3b91b335a104397c13054c51
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Thu Jan 9 12:12:48 2020 -0800
+
+    fix encoding of L1_DTLB_MISS in Zen1 validation
+    
+    Was using amd64_fam17h instead of amd64_fam17h_zen1.
+    It was sill encoding with the deprecated pmu name.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/tests/validate_x86.c b/tests/validate_x86.c
+index 36896df..563350e 100644
+--- a/tests/validate_x86.c
++++ b/tests/validate_x86.c
+@@ -5660,10 +5660,10 @@ static const test_event_t x86_test_events[]={
+ 	  .fstr = "amd64_fam17h_zen1::LOCKS:SPEC_LOCK:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
+ 	{ SRC_LINE,
+-	  .name = "amd64_fam17h::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:u",
++	  .name = "amd64_fam17h_zen1::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:u",
+ 	  .count = 1,
+ 	  .codes[0] = 0x510845ull,
+-	  .fstr = "amd64_fam17h::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
++	  .fstr = "amd64_fam17h_zen1::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
+ 	{ SRC_LINE,
+ 	  .name = "amd64_fam16h::RETIRED_INSTRUCTIONS",
+
+commit e06078dba3b373225c61fe682880f35ee8db9651
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Fri Jan 17 14:00:54 2020 -0800
+
+    add RETIRED_SERIALIZING_OPS to AMD Fam17h Zen2
+    
+    Was missing from initial event table.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen2.h b/lib/events/amd64_events_fam17h_zen2.h
+index b269268..8c81cca 100644
+--- a/lib/events/amd64_events_fam17h_zen2.h
++++ b/lib/events/amd64_events_fam17h_zen2.h
+@@ -400,6 +400,25 @@ static const amd64_umask_t amd64_fam17h_zen2_dispatch_resource_stall_cycles_0[]=
+   },
+ };
+ 
++static const amd64_umask_t amd64_fam17h_zen2_retired_serializing_ops[]={
++  { .uname  = "X87_CTRL_RET",
++    .udesc  = "X87 control word mispredict traps due to mispredction in RC or PC, or changes in mask bits.",
++    .ucode  = 0x1,
++  },
++  { .uname  = "X87_BOT_RET",
++    .udesc  = "X87 bottom-executing uops retired.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "SSE_CTRL_RET",
++    .udesc  = "SSE control word mispreduct traps due to mispredctions in RC, FTZ or DAZ or changes in mask bits.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "SSE_BOT_RET",
++    .udesc  = "SSE bottom-executing uops retired.",
++    .ucode  = 0x8,
++  },
++};
++
+ static const amd64_entry_t amd64_fam17h_zen2_pe[]={
+   { .name   = "L1_ITLB_MISS_L2_ITLB_HIT",
+     .desc   = "Number of instruction fetches that miss in the L1 ITLB but hit in the L2 ITLB.",
+@@ -807,4 +826,13 @@ static const amd64_entry_t amd64_fam17h_zen2_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_dispatch_resource_stall_cycles_0),
+     .umasks = amd64_fam17h_zen2_dispatch_resource_stall_cycles_0,
+   },
++  { .name   = "RETIRED_SERIALIZING_OPS",
++    .desc   = "The number of serializing Ops retired.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x5,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_retired_serializing_ops),
++    .umasks = amd64_fam17h_zen2_retired_serializing_ops,
++  },
+ };
+
+commit 42c1857c7694cec1a4750a340381d49dd84ca8ff
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Mon Mar 16 16:24:31 2020 -0700
+
+    add RETIRED_SSE_AVX_FLOPS event for AMD64 Fam17h Zen2
+    
+    Was missing from initial commit. Added as PPR rev 0.54.
+    
+    Note that this event by itself does not count correctly.
+    It needs large increment support, which means merging
+    of two consecutive counters. This is handled by the Linux
+    kernel starting with 5.6-rc4. The library simply encodes
+    the event as if it was like any other normal event.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen2.h b/lib/events/amd64_events_fam17h_zen2.h
+index 8c81cca..134b81e 100644
+--- a/lib/events/amd64_events_fam17h_zen2.h
++++ b/lib/events/amd64_events_fam17h_zen2.h
+@@ -419,6 +419,31 @@ static const amd64_umask_t amd64_fam17h_zen2_retired_serializing_ops[]={
+   },
+ };
+ 
++static const amd64_umask_t amd64_fam17h_zen2_retired_sse_avx_flops[]={
++  { .uname  = "ADD_SUB_FLOPS",
++    .udesc  = "Addition/subtraction FLOPS",
++    .ucode  = 0x1,
++  },
++  { .uname  = "MULT_FLOPS",
++    .udesc  = "Multiplication FLOPS",
++    .ucode  = 0x2,
++  },
++  { .uname  = "DIV_FLOPS",
++    .udesc  = "Division FLOPS.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "MAC_FLOPS",
++    .udesc  = "Double precision add/subtract flops.",
++    .ucode  = 0x8,
++  },
++  { .uname  = "ANY",
++    .udesc  = "Double precision add/subtract flops.",
++    .ucode  = 0xf,
++    .uflags = AMD64_FL_DFL | AMD64_FL_NCOMBO,
++  },
++};
++
++
+ static const amd64_entry_t amd64_fam17h_zen2_pe[]={
+   { .name   = "L1_ITLB_MISS_L2_ITLB_HIT",
+     .desc   = "Number of instruction fetches that miss in the L1 ITLB but hit in the L2 ITLB.",
+@@ -436,6 +461,15 @@ static const amd64_entry_t amd64_fam17h_zen2_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_l1_itlb_miss_l2_itlb_miss),
+     .umasks = amd64_fam17h_zen2_l1_itlb_miss_l2_itlb_miss,
+   },
++  { .name   = "RETIRED_SSE_AVX_FLOPS",
++    .desc   = "This is a retire-based event. The number of retired SSE/AVX FLOPS. The number of events logged per cycle can vary from 0 to 64. This event can count above 15 and therefore requires the MergeEvent. On Linux, the kernel handles this case without the need to pass the merge event.",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x3,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_retired_sse_avx_flops),
++    .umasks = amd64_fam17h_zen2_retired_sse_avx_flops,
++  },
+   { .name   = "DIV_CYCLES_BUSY_COUNT",
+     .desc   = "Number of cycles when the divider is busy.",
+     .modmsk  = AMD64_FAM17H_ATTRS,
+diff --git a/tests/validate_x86.c b/tests/validate_x86.c
+index e0beefa..1b7ff6d 100644
+--- a/tests/validate_x86.c
++++ b/tests/validate_x86.c
+@@ -6962,6 +6962,18 @@ static const test_event_t x86_test_events[]={
+ 	  .codes[0] = 0x1005300d0ull,
+ 	  .fstr = "amd64_fam17h_zen2::RETIRED_FUSED_INSTRUCTIONS:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen2::RETIRED_SSE_AVX_FLOPS",
++	  .count = 1,
++	  .codes[0] = 0x530f03,
++	  .fstr = "amd64_fam17h_zen2::RETIRED_SSE_AVX_FLOPS:ANY:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam17h_zen2::RETIRED_SSE_AVX_FLOPS:MULT_FLOPS:u",
++	  .count = 1,
++	  .codes[0] = 0x510203,
++	  .fstr = "amd64_fam17h_zen2::RETIRED_SSE_AVX_FLOPS:MULT_FLOPS:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
+ };
+ 
+ #define NUM_TEST_EVENTS (int)(sizeof(x86_test_events)/sizeof(test_event_t))
+
+commit c99ed181402b21e74744d5f602aceb6a320c7ded
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Sat May 30 18:08:52 2020 -0700
+
+    update AMD64 Fam17h Zen1 event table
+    
+    Add a few missing events. Thanks to Emmanuel for tracking them down.
+    
+    Based on AMD Fam17h model 01,08h B2 PPR version 3.03 Jun 14, 2019
+    
+    Reported-by: Emmanuel Oseret <emmanuel.oseret@uvsq.fr>
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen1.h b/lib/events/amd64_events_fam17h_zen1.h
+index c6a5852..8fb0551 100644
+--- a/lib/events/amd64_events_fam17h_zen1.h
++++ b/lib/events/amd64_events_fam17h_zen1.h
+@@ -549,6 +549,115 @@ static const amd64_umask_t amd64_fam17h_zen1_dynamic_tokens_dispatch_stall_cycle
+   },
+ };
+ 
++static const amd64_umask_t amd64_fam17h_zen1_software_prefetch_data_cache_fills[]={
++  { .uname  = "MABRESP_LCL_L2",
++    .udesc  = "Fill from local L2.",
++    .ucode  = 0x1,
++  },
++  { .uname  = "LS_MABRESP_LCL_CACHE",
++    .udesc  = "Fill from another cache (home node local).",
++    .ucode  = 0x2,
++  },
++  { .uname  = "LS_MABRESP_LCL_DRAM",
++    .udesc  = "Fill from DRAM (home node local).",
++    .ucode  = 0x8,
++  },
++  { .uname  = "LS_MABRESP_LCL_RMT_CACHE",
++    .udesc  = "Fill from another cache (home node remote).",
++    .ucode  = 0x10,
++  },
++  { .uname  = "LS_MABRESP_LCL_RMT_DRAM",
++    .udesc  = "Fill from DRAM (home node remote).",
++    .ucode  = 0x40,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen1_uops_dispatched_from_decoder[]={
++  { .uname  = "DECODER_DISPATCHED",
++    .udesc  = "Number of uops dispatched from the Decoder",
++    .ucode  = 0x1,
++  },
++  { .uname  = "OPCACHE_DISPATCHED",
++    .udesc  = "Number of uops dispatched from the OpCache",
++    .ucode  = 0x2,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen1_dispatch_resource_stall_cycles_1[]={
++  { .uname  = "INT_PHY_REG_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to integer physical register file resource stalls. Applies to all uops that have integer destination register.",
++    .ucode  = 0x1,
++  },
++  { .uname  = "LOAD_QUEUE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to load queue resource stalls. Applies to all uops with load semantics.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "STORE_QUEUE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to store queue resource stalls. Applies to all uops with store semantics.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "INT_SCHEDULER_MISC_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to integer scheduler miscellaneous resource stalls.",
++    .ucode  = 0x8,
++  },
++  { .uname  = "TAKEN_BRANCH_BUFFER_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to taken branch buffer resource stalls.",
++    .ucode  = 0x10,
++  },
++  { .uname  = "FP_REG_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point register file resource stalls.",
++    .ucode  = 0x20,
++  },
++  { .uname  = "FP_SCHEDULER_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point scheduler resource stalls.",
++    .ucode  = 0x40,
++  },
++  { .uname  = "FP_MISC_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point miscellaneous resource unavailable.",
++    .ucode  = 0x80,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen1_dispatch_resource_stall_cycles_0[]={
++  { .uname  = "ALSQ1_RSRC_STALL",
++    .udesc  = "ALSQ1 resources unavailable.",
++    .ucode  = 0x1,
++  },
++  { .uname  = "ALSQ2_RSRC_STALL",
++    .udesc  = "ALSQ2 resources unavailable.",
++    .ucode  = 0x2,
++  },
++  { .uname  = "ALSQ3_RSRC_STALL",
++    .udesc  = "ALSQ3 resources unavailable.",
++    .ucode  = 0x4,
++  },
++  { .uname  = "ALSQ3_0_RSRC_STALL",
++    .udesc  = "TBD",
++    .ucode  = 0x8,
++  },
++  { .uname  = "ALU_RSRC_STALL",
++    .udesc  = "ALU resource total unavailable",
++    .ucode  = 0x10,
++  },
++  { .uname  = "AGSQ_RSRC_STALL",
++    .udesc  = "AGSQ resource unavailable",
++    .ucode  = 0x20,
++  },
++  { .uname  = "RETIRE_RSRC_STALL",
++    .udesc  = "RETIRE resource unavailable",
++    .ucode  = 0x40,
++  },
++};
++
++static const amd64_umask_t amd64_fam17h_zen1_l2_prefetch_hit_l2[]={
++  { .uname  = "ANY",
++    .udesc  = "Any L2 prefetch requests",
++    .ucode  = 0x3f,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++
+ static const amd64_entry_t amd64_fam17h_zen1_pe[]={
+   { .name   = "L1_ITLB_MISS_L2_ITLB_HIT",
+     .desc   = "The number of instruction fetches that miss in the L1 ITLB but hit in the L2 ITLB.",
+@@ -887,6 +996,24 @@ static const amd64_entry_t amd64_fam17h_zen1_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_ineffective_software_prefetch),
+     .umasks = amd64_fam17h_zen1_ineffective_software_prefetch,
+   },
++  { .name   = "SOFTWARE_PREFETCH_DATA_CACHE_FILLS",
++    .desc   = "Number of software prefetches fills by data source",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x59,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam17h_zen1_software_prefetch_data_cache_fills,
++  },
++  { .name   = "HARDWARE_PREFETCH_DATA_CACHE_FILLS",
++    .desc   = "Number of hardware prefetches fills by data source",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x5a,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam17h_zen1_software_prefetch_data_cache_fills, /* shared */
++  },
+   { .name   = "L1_DTLB_MISS",
+     .desc   = "L1 Data TLB misses.",
+     .modmsk  = AMD64_FAM17H_ATTRS,
+@@ -985,4 +1112,58 @@ static const amd64_entry_t amd64_fam17h_zen1_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_dynamic_tokens_dispatch_stall_cycles_0),
+     .umasks = amd64_fam17h_zen1_dynamic_tokens_dispatch_stall_cycles_0,
+   },
++  { .name   = "UOPS_DISPATCHED_FROM_DECODER",
++    .desc   = "Number of uops dispatched from either the Decoder, OpCache or both",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xaa,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_uops_dispatched_from_decoder),
++    .umasks = amd64_fam17h_zen1_uops_dispatched_from_decoder,
++  },
++  { .name   = "DISPATCH_RESOURCE_STALL_CYCLES_1",
++    .desc   = "Number of cycles where a dispatch group is valid but does not get dispatched due to a Token Stall",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xae,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_dispatch_resource_stall_cycles_1),
++    .umasks = amd64_fam17h_zen1_dispatch_resource_stall_cycles_1,
++  },
++  { .name   = "DISPATCH_RESOURCE_STALL_CYCLES_0",
++    .desc   = "Number of cycles where a dispatch group is valid but does not get dispatched due to a Token Stall",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xaf,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_dispatch_resource_stall_cycles_0),
++    .umasks = amd64_fam17h_zen1_dispatch_resource_stall_cycles_0,
++  },
++  { .name   = "L2_PREFETCH_HIT_L2",
++    .desc   = "Number of L2 prefetcher hits in the L2",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x70,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_l2_prefetch_hit_l2),
++    .umasks = amd64_fam17h_zen1_l2_prefetch_hit_l2,
++  },
++  { .name   = "L2_PREFETCH_HIT_L3",
++    .desc   = "Number of L2 prefetcher hits in the L3",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x71,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_l2_prefetch_hit_l2),
++    .umasks = amd64_fam17h_zen1_l2_prefetch_hit_l2, /* shared */
++  },
++  { .name   = "L2_PREFETCH_MISS_L3",
++    .desc   = "Number of L2 prefetcher misses in the L3",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x72,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_l2_prefetch_hit_l2),
++    .umasks = amd64_fam17h_zen1_l2_prefetch_hit_l2, /* shared */
++  },
+ };
+
+commit 17e622e9539e1f8faf3c0c27889963a537e95537
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Sat Jun 13 00:39:58 2020 -0700
+
+    add L2_PREFETCH_MISS_L3 for AMD Fam17h Zen2
+    
+    Add missing L2_PREFETCH_MISS_L3 event for AMD Fam17h Zen2.
+    
+    Reported-by: Emmanuel Oseret <emmanuel.oseret@uvsq.fr>
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen2.h b/lib/events/amd64_events_fam17h_zen2.h
+index 134b81e..18d71d5 100644
+--- a/lib/events/amd64_events_fam17h_zen2.h
++++ b/lib/events/amd64_events_fam17h_zen2.h
+@@ -128,7 +128,6 @@ static const amd64_umask_t amd64_fam17h_zen2_l2_prefetch_hit_l2[]={
+   },
+ };
+ 
+-
+ static const amd64_umask_t amd64_fam17h_zen2_requests_to_l2_group1[]={
+   { .uname  = "RD_BLK_L",
+     .udesc  = "Number of data cache reads (including software and hardware prefetches).",
+@@ -627,6 +626,15 @@ static const amd64_entry_t amd64_fam17h_zen2_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_l2_prefetch_hit_l2),
+     .umasks = amd64_fam17h_zen2_l2_prefetch_hit_l2, /* shared */
+   },
++  { .name   = "L2_PREFETCH_MISS_L3",
++    .desc   = "Number of L2 prefetcher misses in the L3",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x72,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_l2_prefetch_hit_l2),
++    .umasks = amd64_fam17h_zen2_l2_prefetch_hit_l2, /* shared */
++  },
+   { .name   = "REQUESTS_TO_L2_GROUP1",
+     .desc   = "TBD",
+     .modmsk  = AMD64_FAM17H_ATTRS,
+
+commit 5a623727cf7111afd09df2cdb0ff4b294d31efa7
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Fri Jun 19 15:07:01 2020 -0700
+
+    update AMD Fam17h Zen2 event table
+    
+    Added:
+     - FP_DISPATCH_FAULT
+     - DATA_CACHE_REFILLS_FROM_SYSTEM
+    
+    Fixed typos in umask for SOFTWARE_PREFETCH_DATA_CACHE_FILLS
+    which are shared with DATA_CACHE_REFILLS_FROM_SYSTEM.
+    
+    Reported-by: Steve Kaufmann <steven.kaufmann@hpe.com>
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen2.h b/lib/events/amd64_events_fam17h_zen2.h
+index 18d71d5..71616e5 100644
+--- a/lib/events/amd64_events_fam17h_zen2.h
++++ b/lib/events/amd64_events_fam17h_zen2.h
+@@ -261,11 +261,11 @@ static const amd64_umask_t amd64_fam17h_zen2_software_prefetch_data_cache_fills[
+     .udesc  = "Fill from DRAM (home node local).",
+     .ucode  = 0x8,
+   },
+-  { .uname  = "LS_MABRESP_LCL_RMT_CACHE",
++  { .uname  = "LS_MABRESP_RMT_CACHE",
+     .udesc  = "Fill from another cache (home node remote).",
+     .ucode  = 0x10,
+   },
+-  { .uname  = "LS_MABRESP_LCL_RMT_DRAM",
++  { .uname  = "LS_MABRESP_RMT_DRAM",
+     .udesc  = "Fill from DRAM (home node remote).",
+     .ucode  = 0x40,
+   },
+@@ -442,6 +442,29 @@ static const amd64_umask_t amd64_fam17h_zen2_retired_sse_avx_flops[]={
+   },
+ };
+ 
++static const amd64_umask_t amd64_fam17h_zen2_fp_dispatch_faults[]={
++  { .uname  = "X87_FILL_FAULT",
++    .udesc  = "x87 fill faults",
++    .ucode  = 0x1,
++  },
++  { .uname  = "XMM_FILL_FAULT",
++    .udesc  = "XMM fill faults",
++    .ucode  = 0x2,
++  },
++  { .uname  = "YMM_FILL_FAULT",
++    .udesc  = "YMM fill faults",
++    .ucode  = 0x4,
++  },
++  { .uname  = "YMM_SPILL_FAULT",
++    .udesc  = "YMM spill faults",
++    .ucode  = 0x8,
++  },
++  { .uname  = "ANY",
++    .udesc  = "Any FP dispatch faults",
++    .ucode  = 0xf,
++    .uflags = AMD64_FL_DFL | AMD64_FL_NCOMBO,
++  },
++};
+ 
+ static const amd64_entry_t amd64_fam17h_zen2_pe[]={
+   { .name   = "L1_ITLB_MISS_L2_ITLB_HIT",
+@@ -877,4 +900,22 @@ static const amd64_entry_t amd64_fam17h_zen2_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_retired_serializing_ops),
+     .umasks = amd64_fam17h_zen2_retired_serializing_ops,
+   },
++  { .name   = "FP_DISPATCH_FAULTS",
++    .desc   = "Floating-point dispatch faults",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0xe,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_fp_dispatch_faults),
++    .umasks = amd64_fam17h_zen2_fp_dispatch_faults,
++  },
++  { .name   = "DATA_CACHE_REFILLS_FROM_SYSTEM",
++    .desc   = "Demand Data Cache fills by data source",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x43,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam17h_zen2_software_prefetch_data_cache_fills, /* shared */
++  },
+ };
+
+commit ea9752f3fee76798010093c2f35cbf719980997d
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Sat Jun 20 12:27:26 2020 -0700
+
+    more updates to AMD Fam17h Zen1 event table
+    
+    Added:
+     - DYNAMIC_INDIRECT_PREDICTIONS
+     - DECODER_OVERRIDES_PREDICTION
+    
+    Reported-by: Emmanuel Oseret <emmanuel.oseret@uvsq.fr>
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen1.h b/lib/events/amd64_events_fam17h_zen1.h
+index 8fb0551..242091a 100644
+--- a/lib/events/amd64_events_fam17h_zen1.h
++++ b/lib/events/amd64_events_fam17h_zen1.h
+@@ -657,7 +657,6 @@ static const amd64_umask_t amd64_fam17h_zen1_l2_prefetch_hit_l2[]={
+   },
+ };
+ 
+-
+ static const amd64_entry_t amd64_fam17h_zen1_pe[]={
+   { .name   = "L1_ITLB_MISS_L2_ITLB_HIT",
+     .desc   = "The number of instruction fetches that miss in the L1 ITLB but hit in the L2 ITLB.",
+@@ -1166,4 +1165,16 @@ static const amd64_entry_t amd64_fam17h_zen1_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_l2_prefetch_hit_l2),
+     .umasks = amd64_fam17h_zen1_l2_prefetch_hit_l2, /* shared */
+   },
++  { .name   = "DYNAMIC_INDIRECT_PREDICTIONS",
++    .desc   = "Indirect Branch Prediction for potential multi-target branch (speculative)",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x8e,
++    .flags   = 0,
++  },
++  { .name   = "DECODER_OVERRIDES_PREDICTION",
++    .desc   = "Decoder Overrides Existing Branch Prediction (speculative)",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x91,
++    .flags   = 0,
++  },
+ };
+
+commit e162519d26d313860a9e69889bcc67406f92edc9
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Wed Aug 12 15:23:27 2020 -0700
+
+    fix duplicate event code on AMD Fam17h Zen1
+    
+    Removed DISPATCH_RESOURCE_STALL_CYCLES_0 which is not an AMD Fam17h event
+    but rather a Zen2 event with the same event code.
+    
+    Reported-by: Kaufmann, Steve <steven.kaufmann@hpe.com>
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen1.h b/lib/events/amd64_events_fam17h_zen1.h
+index 242091a..315f8b5 100644
+--- a/lib/events/amd64_events_fam17h_zen1.h
++++ b/lib/events/amd64_events_fam17h_zen1.h
+@@ -1129,15 +1129,6 @@ static const amd64_entry_t amd64_fam17h_zen1_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_dispatch_resource_stall_cycles_1),
+     .umasks = amd64_fam17h_zen1_dispatch_resource_stall_cycles_1,
+   },
+-  { .name   = "DISPATCH_RESOURCE_STALL_CYCLES_0",
+-    .desc   = "Number of cycles where a dispatch group is valid but does not get dispatched due to a Token Stall",
+-    .modmsk  = AMD64_FAM17H_ATTRS,
+-    .code    = 0xaf,
+-    .flags   = 0,
+-    .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen1_dispatch_resource_stall_cycles_0),
+-    .umasks = amd64_fam17h_zen1_dispatch_resource_stall_cycles_0,
+-  },
+   { .name   = "L2_PREFETCH_HIT_L2",
+     .desc   = "Number of L2 prefetcher hits in the L2",
+     .modmsk  = AMD64_FAM17H_ATTRS,
+
+commit de4beb0da7530bc1dcd2f19582dfeca2ecb1d185
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Fri Sep 25 11:41:56 2020 -0700
+
+    update AMD Fam17h Zen2 event table
+    
+    Based on PPR version 0.91 Sep1, 2020.
+    
+    Thanks to Emmanuel for tracking the diffs.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h_zen2.h b/lib/events/amd64_events_fam17h_zen2.h
+index 71616e5..f44bd77 100644
+--- a/lib/events/amd64_events_fam17h_zen2.h
++++ b/lib/events/amd64_events_fam17h_zen2.h
+@@ -210,12 +210,15 @@ static const amd64_umask_t amd64_fam17h_zen2_retired_lock_instructions[]={
+   { .uname  = "CACHEABLE_LOCKS",
+     .udesc  = "Lock in cacheable memory region.",
+     .ucode  = 0xe,
+-    .uflags = AMD64_FL_DFL,
++  },
++  { .uname  = "BUS_LOCK",
++    .udesc  = "Number of bus locks",
++    .ucode  = 0x1,
+   },
+ };
+ 
+ static const amd64_umask_t amd64_fam17h_zen2_tlb_flushes[]={
+-  { .uname  = "ANY",
++  { .uname  = "ALL",
+     .udesc  = "ANY TLB flush.",
+     .ucode  = 0xff,
+     .uflags = AMD64_FL_DFL,
+@@ -338,10 +341,22 @@ static const amd64_umask_t amd64_fam17h_zen2_mab_allocation_by_pipe[]={
+ };
+ 
+ static const amd64_umask_t amd64_fam17h_zen2_prefetch_instructions_dispatched[]={
++  { .uname  = "PREFETCH_T0_T1_T2",
++    .udesc  = "Number of prefetcht0, perfetcht1, prefetcht2 instructions dispatched",
++    .ucode  = 0x1,
++  },
++  { .uname  = "PREFETCHW",
++    .udesc  = "Number of prefetchtw instructions dispatched",
++    .ucode  = 0x2,
++  },
++  { .uname  = "PREFETCHNTA",
++    .udesc  = "Number of prefetchtnta instructions dispatched",
++    .ucode  = 0x4,
++  },
+   { .uname  = "ANY",
+     .udesc  = "Any prefetch",
+-    .ucode  = 0xff,
+-    .uflags = AMD64_FL_DFL,
++    .ucode  = 0x7,
++    .uflags = AMD64_FL_DFL | AMD64_FL_NCOMBO,
+   },
+ };
+ 
+@@ -608,6 +623,13 @@ static const amd64_entry_t amd64_fam17h_zen2_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_zen2_tagged_ibs_ops),
+     .umasks = amd64_fam17h_zen2_tagged_ibs_ops,
+   },
++  { .name   = "RETIRED_BRANCH_MISPREDICTED_DIRECTION_MISMATCH",
++    .desc   = "Number of retired conditional branch instructions that were not correctly predicted because of branch direction mismatch",
++    .modmsk  = AMD64_FAM17H_ATTRS,
++    .code    = 0x1c7,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
+   { .name   = "INSTRUCTION_CACHE_REFILLS_FROM_L2",
+     .desc   = "Number of 64-byte instruction cachelines that was fulfilled by the L2 cache.",
+     .modmsk  = AMD64_FAM17H_ATTRS,
+
+commit cc4ba27e55440f87359bee5176380db1ba4ef8af
+Author: Swarup Sahoo <swarup-chandra.sahoo@amd.com>
+Date:   Tue Mar 2 01:49:51 2021 +0530
+
+    Add AMD64 Fam19h Zen3 core PMU support
+    
+    The patch adds a core PMU support for AMD Fam19h Zen3.
+    
+    new PMU model: amd64_fam19h_zen3
+    
+    Based on the public specifications PPR (#55898) Rev 0.35 - Feb 5, 2021.
+    Available at: https://www.amd.com/system/files/TechDocs/55898_pub.zip
+    
+    Signed-off-by: Swarup Sahoo <swarup-chandra.sahoo@amd.com>
+
+diff --git a/README b/README
+index f8cb866..3bc3a68 100644
+--- a/README
++++ b/README
+@@ -41,6 +41,7 @@ The library supports many PMUs. The current version can handle:
+ 		AMD64 Fam16h (Jaguar)
+ 		AMD64 Fam17h (Zen1)
+ 		AMD64 Fam17h (Zen2)
++		AMD64 Fam19h (Zen3)
+ 
+ 	- For Intel X86: 
+ 		Intel P6 (Pentium II, Pentium Pro, Pentium III, Pentium M)
+diff --git a/docs/Makefile b/docs/Makefile
+index e124747..df51a3a 100644
+--- a/docs/Makefile
++++ b/docs/Makefile
+@@ -41,6 +41,7 @@ ARCH_MAN=libpfm_intel_core.3	\
+ 	 libpfm_amd64_fam16h.3	\
+ 	 libpfm_amd64_fam17h.3	\
+ 	 libpfm_amd64_fam17h_zen2.3 \
++	 libpfm_amd64_fam19h_zen3.3 \
+ 	 libpfm_intel_atom.3	\
+ 	 libpfm_intel_nhm.3	\
+ 	 libpfm_intel_nhm_unc.3 \
+diff --git a/docs/man3/libpfm_amd64_fam19h_zen3.3 b/docs/man3/libpfm_amd64_fam19h_zen3.3
+new file mode 100644
+index 0000000..5faeb18
+--- /dev/null
++++ b/docs/man3/libpfm_amd64_fam19h_zen3.3
+@@ -0,0 +1,49 @@
++.TH LIBPFM 3  "February, 2021" "" "Linux Programmer's Manual"
++.SH NAME
++libpfm_amd64_fam19h_zen3 - support for AMD64 Family 19h processors
++.SH SYNOPSIS
++.nf
++.B #include <perfmon/pfmlib.h>
++.sp
++.B PMU name: amd64_fam19h_zen3
++.B PMU desc: AMD64 Fam19h Zen3
++.sp
++.SH DESCRIPTION
++The library supports AMD Family 19h processors Zen3 core PMU in both 32 and 64-bit modes.
++
++.SH MODIFIERS
++The following modifiers are supported on AMD64 Family 19h Zen3 core PMU:
++.TP
++.B u
++Measure at user level which includes privilege levels 1, 2, 3. This corresponds to \fBPFM_PLM3\fR.
++This is a boolean modifier.
++.TP
++.B k
++Measure at kernel level which includes privilege level 0. This corresponds to \fBPFM_PLM0\fR.
++This is a boolean modifier.
++.TP
++.B h
++Measure at while executing in host mode (when using virtualization). This corresponds to \fBPFM_PLMH\fR.
++This modifier is available starting with Fam10h. This is a boolean modifier.
++.TP
++.B g
++Measure at while executing in guest mode (when using virtualization). This modifier is available
++starting with Fam10h. This is a boolean modifier.
++.TP
++.B i
++Invert the meaning of the event. The counter will now count cycles in which the event is \fBnot\fR
++occurring. This is a boolean modifier
++.TP
++.B e
++Enable edge detection, i.e., count only when there is a state transition. This is a boolean modifier.
++.TP
++.B c
++Set the counter mask value. The mask acts as a threshold. The counter will count the number of cycles
++in which the number of occurrences of the event is greater or equal to the threshold. This is an integer
++modifier with values in the range [0:255].
++
++.SH AUTHORS
++.nf
++Swarup Sahoo
++.if
++.PP
+diff --git a/include/perfmon/pfmlib.h b/include/perfmon/pfmlib.h
+index f943ae9..b0ca262 100644
+--- a/include/perfmon/pfmlib.h
++++ b/include/perfmon/pfmlib.h
+@@ -562,6 +562,7 @@ typedef enum {
+ 
+ 	PFM_PMU_AMD64_FAM17H_ZEN1,	/* AMD AMD64 Fam17h Zen1 */
+ 	PFM_PMU_AMD64_FAM17H_ZEN2,	/* AMD AMD64 Fam17h Zen2 */
++	PFM_PMU_AMD64_FAM19H_ZEN3,	/* AMD AMD64 Fam19h Zen3 */
+ 	/* MUST ADD NEW PMU MODELS HERE */
+ 
+ 	PFM_PMU_MAX			/* end marker */
+diff --git a/lib/Makefile b/lib/Makefile
+index 7afe411..b9088e9 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -124,7 +124,8 @@ SRCS   += pfmlib_amd64.c pfmlib_intel_core.c pfmlib_intel_x86.c \
+ 	  pfmlib_amd64_k7.c pfmlib_amd64_k8.c pfmlib_amd64_fam10h.c \
+ 	  pfmlib_amd64_fam11h.c pfmlib_amd64_fam12h.c \
+ 	  pfmlib_amd64_fam14h.c pfmlib_amd64_fam15h.c \
+-	  pfmlib_amd64_fam17h.c pfmlib_amd64_fam16h.c
++	  pfmlib_amd64_fam17h.c pfmlib_amd64_fam16h.c \
++	  pfmlib_amd64_fam19h.c
+ 
+ CFLAGS += -DCONFIG_PFMLIB_ARCH_X86
+ 
+@@ -252,6 +253,7 @@ INC_X86= pfmlib_intel_x86_priv.h	\
+ 	events/amd64_events_fam15h.h	\
+ 	events/amd64_events_fam17h_zen1.h \
+ 	events/amd64_events_fam17h_zen2.h \
++	events/amd64_events_fam19h_zen3.h \
+ 	events/amd64_events_fam16h.h	\
+ 	events/intel_p6_events.h	\
+ 	events/intel_netburst_events.h	\
+diff --git a/lib/events/amd64_events_fam19h_zen3.h b/lib/events/amd64_events_fam19h_zen3.h
+new file mode 100644
+index 0000000..e95ac69
+--- /dev/null
++++ b/lib/events/amd64_events_fam19h_zen3.h
+@@ -0,0 +1,999 @@
++/*
++ * Contributed by Swarup Sahoo
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
++ * of the Software, and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
++ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
++ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
++ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
++ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ * This file is part of libpfm, a performance monitoring support library for
++ * applications on Linux.
++ *
++ * PMU: amd64_fam19h_zen3 (AMD64 Fam19h Zen3)
++ */
++
++static const amd64_umask_t amd64_fam19h_zen3_retired_sse_avx_flops[]={
++  { .uname  = "ADD_SUB_FLOPS",
++    .udesc  = "Addition/subtraction FLOPS",
++    .ucode  = 0x1,
++  },
++  { .uname  = "MULT_FLOPS",
++    .udesc  = "Multiplication FLOPS",
++    .ucode  = 0x2,
++  },
++  { .uname  = "DIV_FLOPS",
++    .udesc  = "Division/Square-root FLOPS",
++    .ucode  = 0x4,
++  },
++  { .uname  = "MAC_FLOPS",
++    .udesc  = "Multiply-Accumulate flops. Each MAC operation is counted as 2 FLOPS",
++    .ucode  = 0x8,
++  },
++  { .uname  = "ANY",
++    .udesc  = "Double precision add/subtract flops",
++    .ucode  = 0xf,
++    .uflags = AMD64_FL_DFL | AMD64_FL_NCOMBO,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_retired_serializing_ops[]={
++  { .uname  = "X87_CTRL_RET",
++    .udesc  = "x87 control word mispredict traps due to mispredction in RC or PC, or changes in Exception Mask bits",
++    .ucode  = 0x1,
++  },
++  { .uname  = "X87_BOT_RET",
++    .udesc  = "x87 bottom-executing ops retired",
++    .ucode  = 0x2,
++  },
++  { .uname  = "SSE_CTRL_RET",
++    .udesc  = "SSE/AVX control word mispredict traps",
++    .ucode  = 0x4,
++  },
++  { .uname  = "SSE_BOT_RET",
++    .udesc  = "SSE/AVX bottom-executing ops retired",
++    .ucode  = 0x8,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_fp_dispatch_faults[]={
++  { .uname  = "X87_FILL_FAULT",
++    .udesc  = "x87 fill faults",
++    .ucode  = 0x1,
++  },
++  { .uname  = "XMM_FILL_FAULT",
++    .udesc  = "XMM fill faults",
++    .ucode  = 0x2,
++  },
++  { .uname  = "YMM_FILL_FAULT",
++    .udesc  = "YMM fill faults",
++    .ucode  = 0x4,
++  },
++  { .uname  = "YMM_SPILL_FAULT",
++    .udesc  = "YMM spill faults",
++    .ucode  = 0x8,
++  },
++  { .uname  = "ANY",
++    .udesc  = "Any FP dispatch faults",
++    .ucode  = 0xf,
++    .uflags = AMD64_FL_DFL | AMD64_FL_NCOMBO,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_bad_status_2[]={
++  { .uname  = "STLI_OTHER",
++    .udesc  = "Store-to-load conflicts. A load was unable to complete due to a non-forwardable conflict with an older store",
++    .ucode  = 0x2,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_retired_lock_instructions[]={
++  { .uname  = "BUS_LOCK",
++    .udesc  = "Number of bus locks",
++    .ucode  = 0x1,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_ls_dispatch[]={
++  { .uname  = "LD_ST_DISPATCH",
++    .udesc  = "Dispatched op that performs a load from and store to the same memory address",
++    .ucode  = 0x4,
++  },
++  { .uname  = "STORE_DISPATCH",
++    .udesc  = "Store ops dispatched",
++    .ucode  = 0x2,
++  },
++  { .uname  = "LD_DISPATCH",
++    .udesc  = "Load ops dispatched",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_store_commit_cancels_2[]={
++  { .uname  = "WCB_FULL",
++    .udesc  = "Non cacheable store and the non-cacheable commit buffer is full",
++    .ucode  = 0x1,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_mab_allocation_by_type[]={
++  { .uname  = "LS",
++    .udesc  = "Load store allocations",
++    .ucode  = 0x3f,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "HW_PF",
++    .udesc  = "Hardware prefetcher allocations",
++    .ucode  = 0x40,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "ALL",
++    .udesc  = "All allocations",
++    .ucode  = 0x7f,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_software_prefetch_data_cache_fills[]={
++  { .uname  = "LCL_L2",
++    .udesc  = "Fill from local L2 to the core",
++    .ucode  = 0x1,
++  },
++  { .uname  = "INT_CACHE",
++    .udesc  = "Fill from L3 or different L2 in same CCX",
++    .ucode  = 0x2,
++  },
++  { .uname  = "EXT_CACHE_LCL",
++    .udesc  = "Fill from cache of different CCX in same node",
++    .ucode  = 0x4,
++  },
++  { .uname  = "MEM_IO_LCL",
++    .udesc  = "Fill from DRAM or IO connected in same node",
++    .ucode  = 0x8,
++  },
++  { .uname  = "EXT_CACHE_RMT",
++    .udesc  = "Fill from CCX cache in different node",
++    .ucode  = 0x10,
++  },
++  { .uname  = "MEM_IO_RMT",
++    .udesc  = "Fill from DRAM or IO connected in different node",
++    .ucode  = 0x40,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_l1_dtlb_miss[]={
++  { .uname  = "TLB_RELOAD_1G_L2_MISS",
++    .udesc  = "Data TLB reload to a 1GB page that missed in the L2 TLB",
++    .ucode  = 0x80,
++  },
++  { .uname  = "TLB_RELOAD_2M_L2_MISS",
++    .udesc  = "Data TLB reload to a 2MB page that missed in the L2 TLB",
++    .ucode  = 0x40,
++  },
++  { .uname  = "TLB_RELOAD_COALESCED_PAGE_MISS",
++    .udesc  = "Data TLB reload to a coalesced page that also missed in the L2 TLB",
++    .ucode  = 0x20,
++  },
++  { .uname  = "TLB_RELOAD_4K_L2_MISS",
++    .udesc  = "Data TLB reload to a 4KB page that missed in the L2 TLB",
++    .ucode  = 0x10,
++  },
++  { .uname  = "TLB_RELOAD_1G_L2_HIT",
++    .udesc  = "Data TLB reload to a 1GB page that hit in the L2 TLB",
++    .ucode  = 0x8,
++  },
++  { .uname  = "TLB_RELOAD_2M_L2_HIT",
++    .udesc  = "Data TLB reload to a 2MB page that hit in the L2 TLB",
++    .ucode  = 0x4,
++  },
++  { .uname  = "TLB_RELOAD_COALESCED_PAGE_HIT",
++    .udesc  = "Data TLB reload to a coalesced page that hit in the L2 TLB",
++    .ucode  = 0x2,
++  },
++  { .uname  = "TLB_RELOAD_4K_L2_HIT",
++    .udesc  = "Data TLB reload to a 4KB page that hit in the L2 TLB",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_misaligned_loads[]={
++  { .uname  = "MA4K",
++    .udesc  = "The number of 4KB misaligned (page crossing) loads",
++    .ucode  = 0x2,
++  },
++  { .uname  = "MA64",
++    .udesc  = "The number of 64B misaligned (cacheline crossing) loads",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_prefetch_instructions_dispatched[]={
++  { .uname  = "PREFETCH_T0_T1_T2",
++    .udesc  = "Number of prefetcht0, perfetcht1, prefetcht2 instructions dispatched",
++    .ucode  = 0x1,
++  },
++  { .uname  = "PREFETCHW",
++    .udesc  = "Number of prefetchtw instructions dispatched",
++    .ucode  = 0x2,
++  },
++  { .uname  = "PREFETCHNTA",
++    .udesc  = "Number of prefetchtnta instructions dispatched",
++    .ucode  = 0x4,
++  },
++  { .uname  = "ANY",
++    .udesc  = "Any prefetch",
++    .ucode  = 0x7,
++    .uflags = AMD64_FL_DFL | AMD64_FL_NCOMBO,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_ineffective_software_prefetch[]={
++  { .uname  = "MAB_MCH_CNT",
++    .udesc  = "Software prefetch instructions saw a match on an already allocated miss request buffer",
++    .ucode  = 0x2,
++  },
++  { .uname  = "DATA_PIPE_SW_PF_DC_HIT",
++    .udesc  = "Software Prefetch instruction saw a DC hit",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_tlb_flushes[]={
++  { .uname  = "ALL",
++    .udesc  = "Any TLB flush",
++    .ucode  = 0xff,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_l1_itlb_miss_l2_itlb_miss[]={
++  { .uname  = "COALESCED4K",
++    .udesc  = "Number of instruction fetches to a >4K coalesced page",
++    .ucode  = 0x8,
++  },
++  { .uname  = "IF1G",
++    .udesc  = "Number of instruction fetches to a 1GB page",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IF2M",
++    .udesc  = "Number of instruction fetches to a 2MB page",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IF4K",
++    .udesc  = "Number of instruction fetches to a 4KB page",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_itlb_fetch_hit[]={
++  { .uname  = "IF1G",
++    .udesc  = "L1 instruction fetch TLB hit a 1GB page size",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IF2M",
++    .udesc  = "L1 instruction fetch TLB hit a 2MB page size",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IF4K",
++    .udesc  = "L1 instruction fetch TLB hit a 4KB or 16KB page size",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_ic_tag_hit_miss[]={
++  { .uname  = "IC_HIT",
++    .udesc  = "Instruction cache hit",
++    .ucode  = 0x7,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "IC_MISS",
++    .udesc  = "Instruction cache miss",
++    .ucode  = 0x18,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "ALL_IC_ACCESS",
++    .udesc  = "All instruction cache accesses",
++    .ucode  = 0x1f,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_op_cache_hit_miss[]={
++  { .uname  = "OC_HIT",
++    .udesc  = "Op cache hit",
++    .ucode  = 0x3,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "OC_MISS",
++    .udesc  = "Op cache miss",
++    .ucode  = 0x4,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "ALL_OC_ACCESS",
++    .udesc  = "All op cache accesses",
++    .ucode  = 0x7,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_ops_source_dispatched_from_decoder[]={
++  { .uname  = "X86DECODER_DISPATCHED",
++    .udesc  = "Number of ops fetched from Instruction Cache and dispatched",
++    .ucode  = 0x1,
++  },
++  { .uname  = "OPCACHE_DISPATCHED",
++    .udesc  = "Number of ops fetched from Op Cache and dispatched",
++    .ucode  = 0x2,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_ops_type_dispatched_from_decoder[]={
++  { .uname  = "FP_DISP_IBS_MODE",
++    .udesc  = "Any FP dispatch. Count aligns with IBS count",
++    .ucode  = 0x04,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "INT_DISP_IBS_MODE",
++    .udesc  = "Any Integer dispatch. Count aligns with IBS count",
++    .ucode  = 0x08,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "FP_DISP_RETIRE_MODE",
++    .udesc  = "Any FP dispatch. Count aligns with RETIRED_OPS count",
++    .ucode  = 0x84,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++  { .uname  = "INT_DISP_RETIRE_MODE",
++    .udesc  = "Any Integer dispatch. Count aligns with RETIRED_OPS count",
++    .ucode  = 0x88,
++    .uflags = AMD64_FL_NCOMBO,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_dispatch_resource_stall_cycles_1[]={
++  { .uname  = "INT_PHY_REG_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to integer physical register file resource stalls. Applies to all ops that have integer destination register",
++    .ucode  = 0x1,
++  },
++  { .uname  = "LOAD_QUEUE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to load queue resource stalls. Applies to all ops with load semantics",
++    .ucode  = 0x2,
++  },
++  { .uname  = "STORE_QUEUE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to store queue resource stalls. Applies to all ops with store semantics",
++    .ucode  = 0x4,
++  },
++  { .uname  = "TAKEN_BRANCH_BUFFER_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to taken branch buffer resource stalls",
++    .ucode  = 0x10,
++  },
++  { .uname  = "FP_REG_FILE_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point register file resource stalls. Applies to all FP ops that have a destination register",
++    .ucode  = 0x20,
++  },
++  { .uname  = "FP_SCHEDULER_RSRC_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point scheduler resource stalls. Applies to ops that use the FP scheduler",
++    .ucode  = 0x40,
++  },
++  { .uname  = "FP_FLUSH_RECOVERY_STALL",
++    .udesc  = "Number of cycles stalled due to floating-point flush recovery",
++    .ucode  = 0x80,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_dispatch_resource_stall_cycles_2[]={
++  { .uname  = "INT_SCHEDULER_0_TOKEN_STALL",
++    .udesc  = "Number of cycles stalled due to no tokens available for Integer Scheduler Queue 0",
++    .ucode  = 0x1,
++  },
++  { .uname  = "INT_SCHEDULER_1_TOKEN_STALL",
++    .udesc  = "Number of cycles stalled due to no tokens available for Integer Scheduler Queue 1",
++    .ucode  = 0x2,
++  },
++  { .uname  = "INT_SCHEDULER_2_TOKEN_STALL",
++    .udesc  = "Number of cycles stalled due to no tokens available for Integer Scheduler Queue 2",
++    .ucode  = 0x4,
++  },
++  { .uname  = "INT_SCHEDULER_3_TOKEN_STALL",
++    .udesc  = "Number of cycles stalled due to no tokens available for Integer Scheduler Queue 3",
++    .ucode  = 0x8,
++  },
++  { .uname  = "RETIRE_TOKEN_STALL",
++    .udesc  = "Number of cycles stalled due to insufficient tokens available for Retire Queue",
++    .ucode  = 0x20,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_retired_mmx_fp_instructions[]={
++  { .uname  = "SSE_INSTR",
++    .udesc  = "Number of SSE instructions (SSE, SSE2, SSE3, SSSE3, SSE4A, SSE41, SSE42, AVX)",
++    .ucode  = 0x4,
++  },
++  { .uname  = "MMX_INSTR",
++    .udesc  = "Number of MMX instructions",
++    .ucode  = 0x2,
++  },
++  { .uname  = "X87_INSTR",
++    .udesc  = "Number of x87 instructions",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_tagged_ibs_ops[]={
++  { .uname  = "IBS_COUNT_ROLLOVER",
++    .udesc  = "Number of times a op could not be tagged by IBS because of a previous tagged op that has not retired",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IBS_TAGGED_OPS_RET",
++    .udesc  = "Number of ops tagged by IBS that retired",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IBS_TAGGED_OPS",
++    .udesc  = "Number of ops tagged by IBS",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_requests_to_l2_group1[]={
++  { .uname  = "RD_BLK_L",
++    .udesc  = "Number of data cache reads (including software and hardware prefetches)",
++    .ucode  = 0x80,
++  },
++  { .uname  = "RD_BLK_X",
++    .udesc  = "Number of data cache stores",
++    .ucode  = 0x40,
++  },
++  { .uname  = "LS_RD_BLK_C_S",
++    .udesc  = "Number of data cache shared reads",
++    .ucode  = 0x20,
++  },
++  { .uname  = "CACHEABLE_IC_READ",
++    .udesc  = "Number of instruction cache reads",
++    .ucode  = 0x10,
++  },
++  { .uname  = "CHANGE_TO_X",
++    .udesc  = "Number of requests change to writable, check L2 for current state",
++    .ucode  = 0x8,
++  },
++  { .uname  = "PREFETCH_L2",
++    .udesc  = "TBD",
++    .ucode  = 0x4,
++  },
++  { .uname  = "L2_HW_PF",
++    .udesc  = "Number of prefetches accepted by L2 pipeline, hit or miss",
++    .ucode  = 0x2,
++  },
++};
++
++static const amd64_umask_t amd64_fam19h_zen3_core_to_l2_cacheable_request_access_status[]={
++  { .uname  = "LS_RD_BLK_C_S",
++    .udesc  = "Number of data cache shared read hitting in the L2",
++    .ucode  = 0x80,
++  },
++  { .uname  = "LS_RD_BLK_L_HIT_X",
++    .udesc  = "Number of data cache reads hitting in the L2",
++    .ucode  = 0x40,
++  },
++  { .uname  = "LS_RD_BLK_L_HIT_S",
++    .udesc  = "Number of data cache reads hitting a non-modifiable line in the L2",
++    .ucode  = 0x20,
++  },
++  { .uname  = "LS_RD_BLK_X",
++    .udesc  = "Number of data cache store or state change requests hitting in the L2",
++    .ucode  = 0x10,
++  },
++  { .uname  = "LS_RD_BLK_C",
++    .udesc  = "Number of data cache requests missing in the L2 (all types)",
++    .ucode  = 0x8,
++  },
++  { .uname  = "IC_FILL_HIT_X",
++    .udesc  = "Number of instruction cache fill requests hitting a modifiable line in the L2",
++    .ucode  = 0x4,
++  },
++  { .uname  = "IC_FILL_HIT_S",
++    .udesc  = "Number of instruction cache fill requests hitting a non-modifiable line in the L2",
++    .ucode  = 0x2,
++  },
++  { .uname  = "IC_FILL_MISS",
++    .udesc  = "Number of instruction cache fill requests missing the L2",
++    .ucode  = 0x1,
++  },
++};
++
++static const amd64_entry_t amd64_fam19h_zen3_pe[]={
++  { .name   = "RETIRED_SSE_AVX_FLOPS",
++    .desc   = "This is a retire-based event. The number of retired SSE/AVX FLOPS. The number of events logged per cycle can vary from 0 to 64. This event can count above 15 and therefore requires the MergeEvent",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x3,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_retired_sse_avx_flops),
++    .umasks = amd64_fam19h_zen3_retired_sse_avx_flops,
++  },
++  { .name   = "RETIRED_SERIALIZING_OPS",
++    .desc   = "The number of serializing Ops retired",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x5,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_retired_serializing_ops),
++    .umasks = amd64_fam19h_zen3_retired_serializing_ops,
++  },
++  { .name   = "FP_DISPATCH_FAULTS",
++    .desc   = "Floating-point dispatch faults",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xe,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_fp_dispatch_faults),
++    .umasks = amd64_fam19h_zen3_fp_dispatch_faults,
++  },
++  { .name   = "BAD_STATUS_2",
++    .desc   = "TBD",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x24,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_bad_status_2),
++    .umasks = amd64_fam19h_zen3_bad_status_2,
++  },
++  { .name   = "RETIRED_LOCK_INSTRUCTIONS",
++    .desc   = "Counts the number of retired locked instructions",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x25,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_retired_lock_instructions),
++    .umasks = amd64_fam19h_zen3_retired_lock_instructions,
++  },
++  { .name   = "RETIRED_CLFLUSH_INSTRUCTIONS",
++    .desc   = "Counts the number of retired non-speculative clflush instructions",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x26,
++    .flags   = 0,
++  },
++  { .name   = "RETIRED_CPUID_INSTRUCTIONS",
++    .desc   = "Counts the number of retired cpuid instructions",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x27,
++    .flags   = 0,
++  },
++  { .name   = "LS_DISPATCH",
++    .desc   = "Counts the number of operations dispatched to the LS unit. Unit Masks ADDed",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x29,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_ls_dispatch),
++    .umasks = amd64_fam19h_zen3_ls_dispatch,
++  },
++  { .name   = "SMI_RECEIVED",
++    .desc   = "Counts the number system management interrupts (SMI) received",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x2b,
++    .flags   = 0,
++  },
++  { .name   = "INTERRUPT_TAKEN",
++    .desc   = "Counts the number of interrupts taken",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x2c,
++    .flags   = 0,
++  },
++  { .name   = "STORE_TO_LOAD_FORWARD",
++    .desc   = "Number of STore to Load Forward hits",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x35,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "STORE_COMMIT_CANCELS_2",
++    .desc   = "TBD",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x37,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_store_commit_cancels_2),
++    .umasks = amd64_fam19h_zen3_store_commit_cancels_2,
++  },
++  { .name   = "MAB_ALLOCATION_BY_TYPE",
++    .desc   = "Counts when a LS pipe allocates a MAB entry",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x41,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_mab_allocation_by_type),
++    .umasks = amd64_fam19h_zen3_mab_allocation_by_type,
++  },
++  { .name   = "DEMAND_DATA_CACHE_FILLS_FROM_SYSTEM",
++    .desc   = "Demand Data Cache fills by data source",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x43,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam19h_zen3_software_prefetch_data_cache_fills, /* shared */
++  },
++  { .name   = "ANY_DATA_CACHE_FILLS_FROM_SYSTEM",
++    .desc   = "Any Data Cache fills by data source",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x44,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam19h_zen3_software_prefetch_data_cache_fills, /* shared */
++  },
++  { .name   = "L1_DTLB_MISS",
++    .desc   = "L1 Data TLB misses",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x45,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l1_dtlb_miss),
++    .umasks = amd64_fam19h_zen3_l1_dtlb_miss,
++  },
++  { .name   = "MISALIGNED_LOADS",
++    .desc   = "Misaligned loads retired",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x47,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_misaligned_loads),
++    .umasks = amd64_fam19h_zen3_misaligned_loads,
++  },
++  { .name   = "PREFETCH_INSTRUCTIONS_DISPATCHED",
++    .desc   = "Software Prefetch Instructions Dispatched. This is a speculative event",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x4b,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_prefetch_instructions_dispatched),
++    .umasks = amd64_fam19h_zen3_prefetch_instructions_dispatched,
++  },
++  { .name   = "INEFFECTIVE_SOFTWARE_PREFETCH",
++    .desc   = "Number of software prefetches that did not fetch data outside of the processor core",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x52,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_ineffective_software_prefetch),
++    .umasks = amd64_fam19h_zen3_ineffective_software_prefetch,
++  },
++  { .name   = "SOFTWARE_PREFETCH_DATA_CACHE_FILLS",
++    .desc   = "Number of software prefetches fills by data source",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x59,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam19h_zen3_software_prefetch_data_cache_fills, /* shared */
++  },
++  { .name   = "HARDWARE_PREFETCH_DATA_CACHE_FILLS",
++    .desc   = "Number of hardware prefetches fills by data source",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x5a,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_software_prefetch_data_cache_fills),
++    .umasks = amd64_fam19h_zen3_software_prefetch_data_cache_fills, /* shared */
++  },
++  { .name   = "ALLOC_MAB_COUNT",
++    .desc   = "Counts the in-flight L1 data cache misses (allocated Miss Address Buffers) divided by 4 and rounded down each cycle unless used with the MergeEvent functionality. If the MergeEvent is used, it counts the exact number of outstanding L1 data cache misses",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x5f,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "CYCLES_NOT_IN_HALT",
++    .desc   = "Number of core cycles not in halted state",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x76,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "TLB_FLUSHES",
++    .desc   = "Number of TLB flushes",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x78,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_tlb_flushes),
++    .umasks = amd64_fam19h_zen3_tlb_flushes,
++  },
++  { .name   = "INSTRUCTION_CACHE_REFILLS_FROM_L2",
++    .desc   = "Number of 64-byte instruction cachelines that was fulfilled by the L2 cache",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x82,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "INSTRUCTION_CACHE_REFILLS_FROM_SYSTEM",
++    .desc   = "Number of 64-byte instruction cachelines fulfilled from system memory or another cache",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x83,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "L1_ITLB_MISS_L2_ITLB_HIT",
++    .desc   = "Number of instruction fetches that miss in the L1 ITLB but hit in the L2 ITLB",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x84,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "L1_ITLB_MISS_L2_ITLB_MISS",
++    .desc   = "The number of valid fills into the ITLB originating from the LS Page-Table Walker. Tablewalk requests are issued for L1-ITLB and L2-ITLB misses",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x85,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l1_itlb_miss_l2_itlb_miss),
++    .umasks = amd64_fam19h_zen3_l1_itlb_miss_l2_itlb_miss,
++  },
++  { .name   = "L2_BTB_CORRECTION",
++    .desc   = "Number of L2 branch prediction overrides of existing prediction. This is a speculative event",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x8b,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "DYNAMIC_INDIRECT_PREDICTIONS",
++    .desc   = "Number of times a branch used the indirect predictor to make a prediction",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x8e,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "DECODER_OVERRIDE_BRANCH_PRED",
++    .desc   = "Number of decoder overrides of existing branch prediction",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x91,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "L1_ITLB_FETCH_HIT",
++    .desc   = "Instruction fetches that hit in the L1 ITLB",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x94,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_itlb_fetch_hit),
++    .umasks = amd64_fam19h_zen3_itlb_fetch_hit,
++  },
++  { .name   = "IC_TAG_HIT_MISS",
++    .desc   = "Counts various IC tag related hit and miss events",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x18e,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_ic_tag_hit_miss),
++    .umasks = amd64_fam19h_zen3_ic_tag_hit_miss,
++  },
++  { .name   = "OP_CACHE_HIT_MISS",
++    .desc   = "Counts op cache micro-tag hit/miss events",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x28f,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_op_cache_hit_miss),
++    .umasks = amd64_fam19h_zen3_op_cache_hit_miss,
++  },
++  { .name   = "OPS_SOURCE_DISPATCHED_FROM_DECODER",
++    .desc   = "Number of ops dispatched from the decoder classified by op source",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xaa,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_ops_source_dispatched_from_decoder),
++    .umasks = amd64_fam19h_zen3_ops_source_dispatched_from_decoder,
++  },
++  { .name   = "OPS_TYPE_DISPATCHED_FROM_DECODER",
++    .desc   = "Number of ops dispatched from the decoder classified by op type",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xab,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_ops_type_dispatched_from_decoder),
++    .umasks = amd64_fam19h_zen3_ops_type_dispatched_from_decoder,
++  },
++  { .name   = "DISPATCH_RESOURCE_STALL_CYCLES_1",
++    .desc   = "Number of cycles where a dispatch group is valid but does not get dispatched due to a Token Stall",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xae,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_dispatch_resource_stall_cycles_1),
++    .umasks = amd64_fam19h_zen3_dispatch_resource_stall_cycles_1,
++  },
++  { .name   = "DISPATCH_RESOURCE_STALL_CYCLES_2",
++    .desc   = "Number of cycles where a dispatch group is valid but does not get dispatched due to a Token Stall",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xaf,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_dispatch_resource_stall_cycles_2),
++    .umasks = amd64_fam19h_zen3_dispatch_resource_stall_cycles_2,
++  },
++  { .name   = "RETIRED_INSTRUCTIONS",
++    .desc   = "Number of instructions retired",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc0,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_OPS",
++    .desc   = "Number of macro-ops retired",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc1,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_BRANCH_INSTRUCTIONS",
++    .desc   = "Number of branch instructions retired. This includes all types of architectural control flow changes, including exceptions and interrupts",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc2,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_BRANCH_INSTRUCTIONS_MISPREDICTED",
++    .desc   = "Number of retired branch instructions, that were mispredicted",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc3,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_TAKEN_BRANCH_INSTRUCTIONS",
++    .desc   = "Number of taken branches that were retired. This includes all types of architectural control flow changes, including exceptions and interrupts",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc4,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_TAKEN_BRANCH_INSTRUCTIONS_MISPREDICTED",
++    .desc   = "Number of retired taken branch instructions that were mispredicted",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc5,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_FAR_CONTROL_TRANSFERS",
++    .desc   = "Number of far control transfers retired including far call/jump/return, IRET, SYSCALL and SYSRET, plus exceptions and interrupts. Far control transfers are not subject to branch prediction",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc6,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_NEAR_RETURNS",
++    .desc   = "Number of near return instructions (RET or RET Iw) retired",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc8,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_NEAR_RETURNS_MISPREDICTED",
++    .desc   = "Number of near returns retired that were not correctly predicted by the return address predictor. Each such mispredict incurs the same penalty as a mispredicted conditional branch instruction",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xc9,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_INDIRECT_BRANCH_INSTRUCTIONS_MISPREDICTED",
++    .desc   = "Number of indirect branches retired there were not correctly predicted. Each such mispredict incurs the same penalty as a mispredicted condition branch instruction. Only EX mispredicts are counted",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xca,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_MMX_FP_INSTRUCTIONS",
++    .desc   = "Number of MMX, SSE or x87 instructions retired. The UnitMask allows the selection of the individual classes of instructions as given in the table. Each increment represents one complete instruction. Since this event includes non-numeric instructions, it is not suitable for measuring MFLOPS",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xcb,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_retired_mmx_fp_instructions),
++    .umasks = amd64_fam19h_zen3_retired_mmx_fp_instructions,
++  },
++  { .name   = "RETIRED_INDIRECT_BRANCH_INSTRUCTIONS",
++    .desc   = "Number of indirect branches retired",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xcc,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_CONDITIONAL_BRANCH_INSTRUCTIONS",
++    .desc   = "Number of retired conditional branch instructions",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xd1,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "DIV_CYCLES_BUSY_COUNT",
++    .desc   = "Number of cycles when the divider is busy",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xd3,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "DIV_OP_COUNT",
++    .desc   = "Number of divide ops",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xd4,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "RETIRED_BRANCH_MISPREDICTED_DIRECTION_MISMATCH",
++    .desc   = "Number of retired conditional branch instructions that were not correctly predicted because of branch direction mismatch",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x1c7,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "TAGGED_IBS_OPS",
++    .desc   = "Counts Op IBS related events",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x1cf,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_tagged_ibs_ops),
++    .umasks = amd64_fam19h_zen3_tagged_ibs_ops,
++  },
++  { .name   = "RETIRED_FUSED_INSTRUCTIONS",
++    .desc   = "Counts retired fused instructions",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x1d0,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "REQUESTS_TO_L2_GROUP1",
++    .desc   = "All L2 cache requests",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x60,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_requests_to_l2_group1),
++    .umasks = amd64_fam19h_zen3_requests_to_l2_group1,
++  },
++  { .name   = "CORE_TO_L2_CACHEABLE_REQUEST_ACCESS_STATUS",
++    .desc   = "L2 cache request outcomes. This event does not count accesses to the L2 cache by the L2 prefetcher",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x64,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_core_to_l2_cacheable_request_access_status),
++    .umasks = amd64_fam19h_zen3_core_to_l2_cacheable_request_access_status,
++  },
++  { .name   = "L2_PREFETCH_HIT_L2",
++    .desc   = "Number of L2 prefetches that hit in the L2",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x70,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "L2_PREFETCH_HIT_L3",
++    .desc   = "Number of L2 prefetches accepted by the L2 pipeline which miss the L2 cache and hit the L3",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x71,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++  { .name   = "L2_PREFETCH_MISS_L3",
++    .desc   = "Number of L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3 caches",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x72,
++    .flags   = 0,
++    .ngrp    = 0,
++  },
++};
+diff --git a/lib/pfmlib_amd64.c b/lib/pfmlib_amd64.c
+index 16384b8..c4497ea 100644
+--- a/lib/pfmlib_amd64.c
++++ b/lib/pfmlib_amd64.c
+@@ -183,7 +183,12 @@ amd64_get_revision(pfm_amd64_config_t *cfg)
+                 }
+ 	} else if (cfg->family == 22) { /* family 16h */
+ 		rev = PFM_PMU_AMD64_FAM16H;
+-	}
++	} else if (cfg->family == 25) { /* family 19h */
++                switch (cfg->model) {
++                default:
++                        rev = PFM_PMU_AMD64_FAM19H_ZEN3;
++                }
++        }
+ 
+         cfg->revision = rev;
+ }
+diff --git a/lib/pfmlib_amd64_fam19h.c b/lib/pfmlib_amd64_fam19h.c
+new file mode 100644
+index 0000000..dd3ce1a
+--- /dev/null
++++ b/lib/pfmlib_amd64_fam19h.c
+@@ -0,0 +1,56 @@
++/*
++ * pfmlib_amd64_fam19h.c : AMD64 Fam19h core PMU support
++ *
++  * Contributed by Swarup Sahoo
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
++ * of the Software, and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
++ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
++ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
++ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
++ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ */
++
++/* private headers */
++#include "pfmlib_priv.h"
++#include "pfmlib_amd64_priv.h"
++#include "events/amd64_events_fam19h_zen3.h"
++
++
++pfmlib_pmu_t amd64_fam19h_zen3_support={
++	.desc			= "AMD64 Fam19h Zen3",
++	.name			= "amd64_fam19h_zen3",
++	.pmu			= PFM_PMU_AMD64_FAM19H_ZEN3,
++	.pmu_rev		= 0,
++	.pme_count		= LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_pe),
++	.type			= PFM_PMU_TYPE_CORE,
++	.supported_plm	        = AMD64_FAM10H_PLM,
++	.num_cntrs		= 6,
++	.max_encoding	        = 1,
++	.pe		        = amd64_fam19h_zen3_pe,
++	.atdesc			= amd64_mods,
++	.flags			= PFMLIB_PMU_FL_RAW_UMASK,
++	.cpu_family		= PFM_PMU_AMD64_FAM19H_ZEN3,
++	.pmu_detect		= pfm_amd64_family_detect,
++	.get_event_encoding[PFM_OS_NONE] = pfm_amd64_get_encoding,
++	 PFMLIB_ENCODE_PERF(pfm_amd64_get_perf_encoding),
++	.get_event_first	= pfm_amd64_get_event_first,
++	.get_event_next		= pfm_amd64_get_event_next,
++	.event_is_valid		= pfm_amd64_event_is_valid,
++	.validate_table		= pfm_amd64_validate_table,
++	.get_event_info		= pfm_amd64_get_event_info,
++	.get_event_attr_info	= pfm_amd64_get_event_attr_info,
++	 PFMLIB_VALID_PERF_PATTRS(pfm_amd64_perf_validate_pattrs),
++	.get_event_nattrs	= pfm_amd64_get_event_nattrs,
++};
+diff --git a/lib/pfmlib_amd64_priv.h b/lib/pfmlib_amd64_priv.h
+index e863d08..6fadc17 100644
+--- a/lib/pfmlib_amd64_priv.h
++++ b/lib/pfmlib_amd64_priv.h
+@@ -129,6 +129,7 @@ extern pfm_amd64_config_t pfm_amd64_cfg;
+ #define AMD64_FAM14H_ATTRS		AMD64_FAM10H_ATTRS
+ #define AMD64_FAM15H_ATTRS		AMD64_FAM10H_ATTRS
+ #define AMD64_FAM17H_ATTRS		AMD64_FAM10H_ATTRS
++#define AMD64_FAM19H_ATTRS		AMD64_FAM10H_ATTRS
+ 
+ #define AMD64_FAM10H_PLM	(PFM_PLM0|PFM_PLM3|PFM_PLMH)
+ #define AMD64_K7_PLM		(PFM_PLM0|PFM_PLM3)
+diff --git a/lib/pfmlib_common.c b/lib/pfmlib_common.c
+index 5cfd87f..54aa9c8 100644
+--- a/lib/pfmlib_common.c
++++ b/lib/pfmlib_common.c
+@@ -81,6 +81,7 @@ static pfmlib_pmu_t *pfmlib_pmus[]=
+ 	&amd64_fam17h_deprecated_support,
+ 	&amd64_fam17h_zen1_support,
+ 	&amd64_fam17h_zen2_support,
++	&amd64_fam19h_zen3_support,
+ 	&intel_core_support,
+ 	&intel_atom_support,
+ 	&intel_nhm_support,
+diff --git a/lib/pfmlib_priv.h b/lib/pfmlib_priv.h
+index db8b0fd..e6fb49a 100644
+--- a/lib/pfmlib_priv.h
++++ b/lib/pfmlib_priv.h
+@@ -255,6 +255,7 @@ extern pfmlib_pmu_t amd64_fam16h_support;
+ extern pfmlib_pmu_t amd64_fam17h_deprecated_support;
+ extern pfmlib_pmu_t amd64_fam17h_zen1_support;
+ extern pfmlib_pmu_t amd64_fam17h_zen2_support;
++extern pfmlib_pmu_t amd64_fam19h_zen3_support;
+ extern pfmlib_pmu_t intel_p6_support;
+ extern pfmlib_pmu_t intel_ppro_support;
+ extern pfmlib_pmu_t intel_pii_support;
+diff --git a/tests/validate_x86.c b/tests/validate_x86.c
+index ad224be..c920509 100644
+--- a/tests/validate_x86.c
++++ b/tests/validate_x86.c
+@@ -7279,6 +7279,48 @@ static const test_event_t x86_test_events[]={
+ 	  .codes[0] = 0x510203,
+ 	  .fstr = "amd64_fam17h_zen2::RETIRED_SSE_AVX_FLOPS:MULT_FLOPS:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3::retired_ops",
++	  .count = 1,
++	  .codes[0] = 0x5300c1ull,
++	  .fstr = "amd64_fam19h_zen3::RETIRED_OPS:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3::cycles_not_in_halt",
++	  .count = 1,
++	  .codes[0] = 0x530076ull,
++	  .fstr = "amd64_fam19h_zen3::CYCLES_NOT_IN_HALT:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3::L2_PREFETCH_HIT_L2",
++	  .count = 1,
++	  .codes[0] = 0x530070ull,
++	  .fstr = "amd64_fam19h_zen3::L2_PREFETCH_HIT_L2:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:u",
++	  .count = 1,
++	  .codes[0] = 0x510845ull,
++	  .fstr = "amd64_fam19h_zen3::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3::RETIRED_FUSED_INSTRUCTIONS",
++	  .count = 1,
++	  .codes[0] = 0x1005300d0ull,
++	  .fstr = "amd64_fam19h_zen3::RETIRED_FUSED_INSTRUCTIONS:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3::RETIRED_SSE_AVX_FLOPS",
++	  .count = 1,
++	  .codes[0] = 0x530f03ull,
++	  .fstr = "amd64_fam19h_zen3::RETIRED_SSE_AVX_FLOPS:ANY:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3::RETIRED_SSE_AVX_FLOPS:MULT_FLOPS:u",
++	  .count = 1,
++	  .codes[0] = 0x510203ull,
++	  .fstr = "amd64_fam19h_zen3::RETIRED_SSE_AVX_FLOPS:MULT_FLOPS:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
++	},
+ };
+ 
+ #define NUM_TEST_EVENTS (int)(sizeof(x86_test_events)/sizeof(test_event_t))
+
+commit e2afb6186dab2419a4b6f79a6adf7cd9bb0f2340
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Mon Mar 15 12:04:48 2021 -0700
+
+    Add AMD64 Fam17h Zen2 RAPL support
+    
+    This patch adds RAPL support for AMD64 Fam17h Zen2
+    processors. On Zen2, only the RAPL_ENERGY_PKGS event is supported.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/include/perfmon/pfmlib.h b/include/perfmon/pfmlib.h
+index b0ca262..ccf3967 100644
+--- a/include/perfmon/pfmlib.h
++++ b/include/perfmon/pfmlib.h
+@@ -564,6 +564,8 @@ typedef enum {
+ 	PFM_PMU_AMD64_FAM17H_ZEN1,	/* AMD AMD64 Fam17h Zen1 */
+ 	PFM_PMU_AMD64_FAM17H_ZEN2,	/* AMD AMD64 Fam17h Zen2 */
+ 	PFM_PMU_AMD64_FAM19H_ZEN3,	/* AMD AMD64 Fam19h Zen3 */
++	PFM_PMU_AMD64_RAPL,		/* AMD64 RAPL */
++
+ 	/* MUST ADD NEW PMU MODELS HERE */
+ 
+ 	PFM_PMU_MAX			/* end marker */
+diff --git a/lib/Makefile b/lib/Makefile
+index b9088e9..ab1bc0a 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -125,7 +125,7 @@ SRCS   += pfmlib_amd64.c pfmlib_intel_core.c pfmlib_intel_x86.c \
+ 	  pfmlib_amd64_fam11h.c pfmlib_amd64_fam12h.c \
+ 	  pfmlib_amd64_fam14h.c pfmlib_amd64_fam15h.c \
+ 	  pfmlib_amd64_fam17h.c pfmlib_amd64_fam16h.c \
+-	  pfmlib_amd64_fam19h.c
++	  pfmlib_amd64_fam19h.c pfmlib_amd64_rapl.c
+ 
+ CFLAGS += -DCONFIG_PFMLIB_ARCH_X86
+ 
+diff --git a/lib/pfmlib_amd64_rapl.c b/lib/pfmlib_amd64_rapl.c
+new file mode 100644
+index 0000000..2a65e32
+--- /dev/null
++++ b/lib/pfmlib_amd64_rapl.c
+@@ -0,0 +1,118 @@
++/*
++ * pfmlib_amd64_rapl.c : AMD RAPL PMU
++ *
++ * Copyright 2021 Google LLC
++ * Contributed by Stephane Eranian <eranian@gmail.com>
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
++ * of the Software, and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
++ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
++ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
++ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
++ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ * AMD RAPL PMU (AMD Zen2)
++ */
++
++/* private headers */
++#include "pfmlib_priv.h"
++/*
++ * for now, we reuse the x86 table entry format and callback to avoid duplicating
++ * code. We may revisit this later on
++ */
++#include "pfmlib_amd64_priv.h"
++
++extern pfmlib_pmu_t amd64_rapl_support;
++
++static const amd64_entry_t amd64_rapl_zen2[]={
++  { .name   = "RAPL_ENERGY_PKG",
++    .desc   = "Number of Joules consumed by all cores and Last level cache on the package. Unit is 2^-32 Joules",
++    .code   = 0x2,
++  }
++};
++
++static int
++pfm_amd64_rapl_detect(void *this)
++{
++	int ret, rev;
++
++	ret = pfm_amd64_detect(this);
++	if (ret != PFM_SUCCESS)
++		return ret;
++
++	rev = pfm_amd64_cfg.revision;
++	switch(rev) {
++	case PFM_PMU_AMD64_FAM17H_ZEN2:
++		ret = PFM_SUCCESS;
++		break;
++	default:
++		ret = PFM_ERR_NOTSUPP;
++	}
++	return ret;
++}
++
++static int
++pfm_amd64_rapl_get_encoding(void *this, pfmlib_event_desc_t *e)
++
++{
++	const amd64_entry_t *pe;
++
++	pe = this_pe(this);
++
++	e->fstr[0] = '\0';
++
++	e->codes[0] = pe[e->event].code;
++	e->count = 1;
++	evt_strcat(e->fstr, "%s", pe[e->event].name);
++
++	__pfm_vbprintf("[0x%"PRIx64" event=0x%x] %s\n",
++		       e->codes[0],
++		       e->codes[0], e->fstr);
++
++	return PFM_SUCCESS;
++}
++
++/*
++ * number modifiers for RAPL
++ * define an empty modifier to avoid firing the
++ * sanity pfm_amd64_validate_table(). We are
++ * using this function to avoid duplicating code.
++ */
++static const pfmlib_attr_desc_t amd64_rapl_mods[]=
++{ { 0, } };
++
++pfmlib_pmu_t amd64_rapl_support={
++	.desc			= "AMD64 RAPL",
++	.name			= "amd64_rapl",
++	.perf_name		= "power",
++	.pmu			= PFM_PMU_AMD64_RAPL,
++	.pme_count		= LIBPFM_ARRAY_SIZE(amd64_rapl_zen2),
++	.type			= PFM_PMU_TYPE_UNCORE,
++	.num_cntrs		= 0,
++	.num_fixed_cntrs	= 3,
++	.max_encoding		= 1,
++	.pe			= amd64_rapl_zen2,
++	.pmu_detect		= pfm_amd64_rapl_detect,
++	.atdesc			= amd64_rapl_mods,
++
++	.get_event_encoding[PFM_OS_NONE] = pfm_amd64_rapl_get_encoding,
++	 PFMLIB_ENCODE_PERF(pfm_amd64_get_perf_encoding),
++	.get_event_first	= pfm_amd64_get_event_first,
++	.get_event_next		= pfm_amd64_get_event_next,
++	.event_is_valid		= pfm_amd64_event_is_valid,
++	.validate_table		= pfm_amd64_validate_table,
++	.get_event_info		= pfm_amd64_get_event_info,
++	.get_event_attr_info	= pfm_amd64_get_event_attr_info,
++	 PFMLIB_VALID_PERF_PATTRS(pfm_amd64_perf_validate_pattrs),
++	.get_event_nattrs	= pfm_amd64_get_event_nattrs,
++};
+diff --git a/lib/pfmlib_common.c b/lib/pfmlib_common.c
+index 54aa9c8..ba2522e 100644
+--- a/lib/pfmlib_common.c
++++ b/lib/pfmlib_common.c
+@@ -82,6 +82,7 @@ static pfmlib_pmu_t *pfmlib_pmus[]=
+ 	&amd64_fam17h_zen1_support,
+ 	&amd64_fam17h_zen2_support,
+ 	&amd64_fam19h_zen3_support,
++	&amd64_rapl_support,
+ 	&intel_core_support,
+ 	&intel_atom_support,
+ 	&intel_nhm_support,
+diff --git a/lib/pfmlib_priv.h b/lib/pfmlib_priv.h
+index e6fb49a..24ca1c5 100644
+--- a/lib/pfmlib_priv.h
++++ b/lib/pfmlib_priv.h
+@@ -256,6 +256,7 @@ extern pfmlib_pmu_t amd64_fam17h_deprecated_support;
+ extern pfmlib_pmu_t amd64_fam17h_zen1_support;
+ extern pfmlib_pmu_t amd64_fam17h_zen2_support;
+ extern pfmlib_pmu_t amd64_fam19h_zen3_support;
++extern pfmlib_pmu_t amd64_rapl_support;
+ extern pfmlib_pmu_t intel_p6_support;
+ extern pfmlib_pmu_t intel_ppro_support;
+ extern pfmlib_pmu_t intel_pii_support;
+
+commit 315941fc05f5a487e4eb5efd36ea10438336944b
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Thu Mar 18 23:13:57 2021 -0700
+
+    add AMD64 Fam19h Zen3 L3 PMU support
+    
+    This patch adds the AMD Fam19h (Zen3) L3 PMU support consisting of
+    3 published events.
+    
+    new PMU model: amd64_fam19h_zen3_l3
+    
+    Based on the public specifications PPR (#55898) Rev 0.35 - Feb 5, 2021.
+    Available at: https://www.amd.com/system/files/TechDocs/55898_pub.zip
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/README b/README
+index 3bc3a68..227fa99 100644
+--- a/README
++++ b/README
+@@ -41,7 +41,7 @@ The library supports many PMUs. The current version can handle:
+ 		AMD64 Fam16h (Jaguar)
+ 		AMD64 Fam17h (Zen1)
+ 		AMD64 Fam17h (Zen2)
+-		AMD64 Fam19h (Zen3)
++		AMD64 Fam19h (Zen3) (core and L3)
+ 
+ 	- For Intel X86: 
+ 		Intel P6 (Pentium II, Pentium Pro, Pentium III, Pentium M)
+diff --git a/docs/Makefile b/docs/Makefile
+index df51a3a..349149c 100644
+--- a/docs/Makefile
++++ b/docs/Makefile
+@@ -42,6 +42,7 @@ ARCH_MAN=libpfm_intel_core.3	\
+ 	 libpfm_amd64_fam17h.3	\
+ 	 libpfm_amd64_fam17h_zen2.3 \
+ 	 libpfm_amd64_fam19h_zen3.3 \
++	 libpfm_amd64_fam19h_zen3_l3.3 \
+ 	 libpfm_intel_atom.3	\
+ 	 libpfm_intel_nhm.3	\
+ 	 libpfm_intel_nhm_unc.3 \
+diff --git a/docs/man3/libpfm_amd64_fam19h_zen3_l3.3 b/docs/man3/libpfm_amd64_fam19h_zen3_l3.3
+new file mode 100644
+index 0000000..a727455
+--- /dev/null
++++ b/docs/man3/libpfm_amd64_fam19h_zen3_l3.3
+@@ -0,0 +1,19 @@
++.TH LIBPFM 3  "March, 2021" "" "Linux Programmer's Manual"
++.SH NAME
++libpfm_amd64_fam19h_zen3_l3 - support for AMD64 Family 19h L3 PMU
++.SH SYNOPSIS
++.nf
++.B #include <perfmon/pfmlib.h>
++.sp
++.B PMU name: amd64_fam19h_zen3_l3
++.B PMU desc: AMD64 Fam19h Zen3 L3
++.sp
++.SH DESCRIPTION
++The library supports AMD Family 19h processors Zen3 L3 PMU in both 32 and 64-bit modes.
++
++At this point, there is no modifier supported.
++.SH AUTHORS
++.nf
++Stephane Eranian
++.if
++.PP
+diff --git a/include/perfmon/pfmlib.h b/include/perfmon/pfmlib.h
+index ccf3967..44d6afe 100644
+--- a/include/perfmon/pfmlib.h
++++ b/include/perfmon/pfmlib.h
+@@ -565,6 +565,7 @@ typedef enum {
+ 	PFM_PMU_AMD64_FAM17H_ZEN2,	/* AMD AMD64 Fam17h Zen2 */
+ 	PFM_PMU_AMD64_FAM19H_ZEN3,	/* AMD AMD64 Fam19h Zen3 */
+ 	PFM_PMU_AMD64_RAPL,		/* AMD64 RAPL */
++	PFM_PMU_AMD64_FAM19H_ZEN3_L3,	/* AMD64 Fam17h Zen3 L3 */
+ 
+ 	/* MUST ADD NEW PMU MODELS HERE */
+ 
+diff --git a/lib/Makefile b/lib/Makefile
+index ab1bc0a..fdc628d 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -125,7 +125,8 @@ SRCS   += pfmlib_amd64.c pfmlib_intel_core.c pfmlib_intel_x86.c \
+ 	  pfmlib_amd64_fam11h.c pfmlib_amd64_fam12h.c \
+ 	  pfmlib_amd64_fam14h.c pfmlib_amd64_fam15h.c \
+ 	  pfmlib_amd64_fam17h.c pfmlib_amd64_fam16h.c \
+-	  pfmlib_amd64_fam19h.c pfmlib_amd64_rapl.c
++	  pfmlib_amd64_fam19h.c pfmlib_amd64_rapl.c \
++	  pfmlib_amd64_fam19h_l3.c
+ 
+ CFLAGS += -DCONFIG_PFMLIB_ARCH_X86
+ 
+@@ -254,6 +255,7 @@ INC_X86= pfmlib_intel_x86_priv.h	\
+ 	events/amd64_events_fam17h_zen1.h \
+ 	events/amd64_events_fam17h_zen2.h \
+ 	events/amd64_events_fam19h_zen3.h \
++	events/amd64_events_fam19h_zen3_l3.h \
+ 	events/amd64_events_fam16h.h	\
+ 	events/intel_p6_events.h	\
+ 	events/intel_netburst_events.h	\
+diff --git a/lib/events/amd64_events_fam19h_zen3_l3.h b/lib/events/amd64_events_fam19h_zen3_l3.h
+new file mode 100644
+index 0000000..b57223c
+--- /dev/null
++++ b/lib/events/amd64_events_fam19h_zen3_l3.h
+@@ -0,0 +1,55 @@
++/*
++ * Copyright 2021 Google LLC
++ * Contributed by Stephane Eranian <eranian@gmail.com>
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
++ * of the Software, and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
++ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
++ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
++ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
++ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ * This file is part of libpfm, a performance monitoring support library for
++ * applications on Linux.
++ *
++ * PMU: amd64_fam19h_zen3_l3 (AMD64 Fam19h Zen3 L3)
++ */
++
++static const amd64_umask_t amd64_fam19h_zen3_l3_requests[]={
++  { .uname  = "ALL",
++    .udesc  = "All types of requests",
++    .ucode  = 0xff,
++    .uflags = AMD64_FL_DFL,
++  },
++};
++
++static const amd64_entry_t amd64_fam19h_zen3_l3_pe[]={
++  { .name   = "REQUESTS",
++    .desc   = "Number of requests to L3 cache",
++    .code    = 0x04,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l3_requests),
++    .umasks = amd64_fam19h_zen3_l3_requests,
++  },
++  { .name   = "MISS_LATENCY",
++    .desc   = "Accumulated miss latency in cycles - occupancy event",
++    .code    = 0x90,
++  },
++  { .name   = "MISSES",
++    .desc   = "Number of L3 cache misses",
++    .code    = 0x9a,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l3_requests),
++    .umasks = amd64_fam19h_zen3_l3_requests, /* shared */
++  },
++};
+diff --git a/lib/pfmlib_amd64_fam19h_l3.c b/lib/pfmlib_amd64_fam19h_l3.c
+new file mode 100644
+index 0000000..acf8b0c
+--- /dev/null
++++ b/lib/pfmlib_amd64_fam19h_l3.c
+@@ -0,0 +1,75 @@
++/*
++ * pfmlib_amd64_fam19h_zen3_l3.c : AMD Fam19h Zen3 L3 PMU
++ *
++ * Copyright 2021 Google LLC
++ * Contributed by Stephane Eranian <eranian@gmail.com>
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
++ * of the Software, and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
++ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
++ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
++ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
++ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ */
++#include <sys/types.h>
++#include <ctype.h>
++#include <string.h>
++#include <stdlib.h>
++#include <stdio.h>
++
++/* private headers */
++#include "pfmlib_priv.h"
++#include "pfmlib_amd64_priv.h"
++#include "events/amd64_events_fam19h_zen3_l3.h"
++
++static void
++display_l3(void *this, pfmlib_event_desc_t *e, void *val)
++{
++	pfm_amd64_reg_t *reg = val;
++
++	__pfm_vbprintf("[L3=0x%"PRIx64" event=0x%x umask=0x%x\n",
++			reg->val,
++			reg->l3.event,
++			reg->l3.umask);
++}
++
++const pfmlib_attr_desc_t l3_mods[]={
++	PFM_ATTR_NULL
++};
++
++pfmlib_pmu_t amd64_fam19h_zen3_l3_support = {
++	.desc			= "AMD64 Fam19h Zen3 L3",
++	.name			= "amd64_fam19h_zen3_l3",
++	.pmu			= PFM_PMU_AMD64_FAM19H_ZEN3_L3,
++	.pmu_rev		= 0,
++	.pme_count		= LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l3_pe),
++	.type			= PFM_PMU_TYPE_UNCORE,
++	.num_cntrs		= 4,
++	.max_encoding		= 1,
++	.pe			= amd64_fam19h_zen3_l3_pe,
++	.atdesc			= l3_mods,
++	.flags			= PFMLIB_PMU_FL_RAW_UMASK,
++	.cpu_family		= PFM_PMU_AMD64_FAM19H_ZEN3,
++	.pmu_detect		= pfm_amd64_family_detect,
++	.get_event_encoding[PFM_OS_NONE] = pfm_amd64_get_encoding,
++	 PFMLIB_ENCODE_PERF(pfm_amd64_get_perf_encoding),
++	.get_event_first	= pfm_amd64_get_event_first,
++	.get_event_next		= pfm_amd64_get_event_next,
++	.event_is_valid		= pfm_amd64_event_is_valid,
++	.validate_table		= pfm_amd64_validate_table,
++	.get_event_info		= pfm_amd64_get_event_info,
++	.get_event_attr_info	= pfm_amd64_get_event_attr_info,
++	 PFMLIB_VALID_PERF_PATTRS(pfm_amd64_perf_validate_pattrs),
++	.get_event_nattrs	= pfm_amd64_get_event_nattrs,
++	.display_reg		= display_l3,
++};
+diff --git a/lib/pfmlib_amd64_priv.h b/lib/pfmlib_amd64_priv.h
+index 6fadc17..5783904 100644
+--- a/lib/pfmlib_amd64_priv.h
++++ b/lib/pfmlib_amd64_priv.h
+@@ -180,6 +180,21 @@ typedef union {
+ 		uint64_t val:1;
+ 		uint64_t reserved2:45;
+ 	} ibsop;
++	struct { /* Zen3 L3 */
++		uint64_t event:8;		/* event mask */
++		uint64_t umask:8;		/* unit mask */
++		uint64_t reserved1:6;		/* reserved */
++		uint64_t en:1;			/* enable */
++		uint64_t reserved2:19;		/* reserved */
++		uint64_t core_id:3;		/* Core ID */
++		uint64_t reserved3:1;		/* reserved */
++		uint64_t en_all_slices:1;	/* enable all slices */
++		uint64_t en_all_cores:1;	/* enable all cores */
++		uint64_t slice_id:3;		/* Slice ID */
++		uint64_t reserved4:5;		/* reserved */
++		uint64_t thread_id:4;		/* reserved */
++		uint64_t reserved5:4;		/* reserved */
++	} l3;
+ } pfm_amd64_reg_t; /* MSR 0xc001000-0xc001003 */
+ 
+ /* let's define some handy shortcuts! */
+diff --git a/lib/pfmlib_common.c b/lib/pfmlib_common.c
+index ba2522e..45d92df 100644
+--- a/lib/pfmlib_common.c
++++ b/lib/pfmlib_common.c
+@@ -82,6 +82,7 @@ static pfmlib_pmu_t *pfmlib_pmus[]=
+ 	&amd64_fam17h_zen1_support,
+ 	&amd64_fam17h_zen2_support,
+ 	&amd64_fam19h_zen3_support,
++	&amd64_fam19h_zen3_l3_support,
+ 	&amd64_rapl_support,
+ 	&intel_core_support,
+ 	&intel_atom_support,
+diff --git a/lib/pfmlib_priv.h b/lib/pfmlib_priv.h
+index 24ca1c5..46d7ab6 100644
+--- a/lib/pfmlib_priv.h
++++ b/lib/pfmlib_priv.h
+@@ -256,6 +256,7 @@ extern pfmlib_pmu_t amd64_fam17h_deprecated_support;
+ extern pfmlib_pmu_t amd64_fam17h_zen1_support;
+ extern pfmlib_pmu_t amd64_fam17h_zen2_support;
+ extern pfmlib_pmu_t amd64_fam19h_zen3_support;
++extern pfmlib_pmu_t amd64_fam19h_zen3_l3_support;
+ extern pfmlib_pmu_t amd64_rapl_support;
+ extern pfmlib_pmu_t intel_p6_support;
+ extern pfmlib_pmu_t intel_ppro_support;
+diff --git a/tests/validate_x86.c b/tests/validate_x86.c
+index c920509..9aa7dd1 100644
+--- a/tests/validate_x86.c
++++ b/tests/validate_x86.c
+@@ -7321,6 +7321,22 @@ static const test_event_t x86_test_events[]={
+ 	  .codes[0] = 0x510203ull,
+ 	  .fstr = "amd64_fam19h_zen3::RETIRED_SSE_AVX_FLOPS:MULT_FLOPS:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3_l3::REQUESTS",
++	  .count = 1,
++	  .codes[0] = 0x53ff04ull,
++	  .fstr = "amd64_fam19h_zen3_l3::REQUESTS:ALL",
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3_l3::REQUESTS:u",
++	  .ret  = PFM_ERR_ATTR,
++	},
++	{ SRC_LINE,
++	  .name = "amd64_fam19h_zen3_l3::MISSES",
++	  .count = 1,
++	  .codes[0] = 0x53ff9aull,
++	  .fstr = "amd64_fam19h_zen3_l3::MISSES:ALL",
++	},
+ };
+ 
+ #define NUM_TEST_EVENTS (int)(sizeof(x86_test_events)/sizeof(test_event_t))
+
+commit c132ab4948a828334a8fef00303a4b47f59bb4d9
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Tue Mar 23 10:11:40 2021 -0700
+
+    Add prefix to AMD Fam19h Zen3 L3 events
+    
+    To avoid potential conflict with other core PMU events and make it
+    more explicit these are uncore L3 events following the model of
+    Intel uncore PMUs.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam19h_zen3_l3.h b/lib/events/amd64_events_fam19h_zen3_l3.h
+index b57223c..523509e 100644
+--- a/lib/events/amd64_events_fam19h_zen3_l3.h
++++ b/lib/events/amd64_events_fam19h_zen3_l3.h
+@@ -34,18 +34,18 @@ static const amd64_umask_t amd64_fam19h_zen3_l3_requests[]={
+ };
+ 
+ static const amd64_entry_t amd64_fam19h_zen3_l3_pe[]={
+-  { .name   = "REQUESTS",
++  { .name   = "UNC_L3_REQUESTS",
+     .desc   = "Number of requests to L3 cache",
+     .code    = 0x04,
+     .ngrp    = 1,
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l3_requests),
+     .umasks = amd64_fam19h_zen3_l3_requests,
+   },
+-  { .name   = "MISS_LATENCY",
++  { .name   = "UNC_L3_MISS_LATENCY",
+     .desc   = "Accumulated miss latency in cycles - occupancy event",
+     .code    = 0x90,
+   },
+-  { .name   = "MISSES",
++  { .name   = "UNC_L3_MISSES",
+     .desc   = "Number of L3 cache misses",
+     .code    = 0x9a,
+     .ngrp    = 1,
+diff --git a/tests/validate_x86.c b/tests/validate_x86.c
+index 9aa7dd1..dfeb213 100644
+--- a/tests/validate_x86.c
++++ b/tests/validate_x86.c
+@@ -7322,20 +7322,20 @@ static const test_event_t x86_test_events[]={
+ 	  .fstr = "amd64_fam19h_zen3::RETIRED_SSE_AVX_FLOPS:MULT_FLOPS:k=0:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
+ 	{ SRC_LINE,
+-	  .name = "amd64_fam19h_zen3_l3::REQUESTS",
++	  .name = "amd64_fam19h_zen3_l3::UNC_L3_REQUESTS",
+ 	  .count = 1,
+ 	  .codes[0] = 0x53ff04ull,
+-	  .fstr = "amd64_fam19h_zen3_l3::REQUESTS:ALL",
++	  .fstr = "amd64_fam19h_zen3_l3::UNC_L3_REQUESTS:ALL",
+ 	},
+ 	{ SRC_LINE,
+-	  .name = "amd64_fam19h_zen3_l3::REQUESTS:u",
++	  .name = "amd64_fam19h_zen3_l3::UNC_L3_REQUESTS:u",
+ 	  .ret  = PFM_ERR_ATTR,
+ 	},
+ 	{ SRC_LINE,
+-	  .name = "amd64_fam19h_zen3_l3::MISSES",
++	  .name = "amd64_fam19h_zen3_l3::UNC_L3_MISSES",
+ 	  .count = 1,
+ 	  .codes[0] = 0x53ff9aull,
+-	  .fstr = "amd64_fam19h_zen3_l3::MISSES:ALL",
++	  .fstr = "amd64_fam19h_zen3_l3::UNC_L3_MISSES:ALL",
+ 	},
+ };
+ 
+
+commit 06197c0543476d40fad1c94d240e46a5d114f887
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Mon May 3 21:45:59 2021 -0700
+
+    enable RAPL for AMD64 Fam19h Zen3 processor
+    
+    As per AMD64 PPR for Fam19h model 01h, RAPL Package is supported, so
+    enable it.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/pfmlib_amd64_rapl.c b/lib/pfmlib_amd64_rapl.c
+index 2a65e32..885704a 100644
+--- a/lib/pfmlib_amd64_rapl.c
++++ b/lib/pfmlib_amd64_rapl.c
+@@ -55,6 +55,9 @@ pfm_amd64_rapl_detect(void *this)
+ 	case PFM_PMU_AMD64_FAM17H_ZEN2:
+ 		ret = PFM_SUCCESS;
+ 		break;
++	case PFM_PMU_AMD64_FAM19H_ZEN3:
++		ret = PFM_SUCCESS;
++		break;
+ 	default:
+ 		ret = PFM_ERR_NOTSUPP;
+ 	}
+
+commit 9c3e9c025efc06f4ac4422d5e87a05d9776cbb94
+Author: Vince Weaver <vincent.weaver@maine.edu>
+Date:   Wed May 26 22:00:27 2021 -0700
+
+    fix detection of AMD64 Zen1 vs. Zen2
+    
+    This patch fixes the test checking the model number
+    for AMD64 Fam17h processors. There was a bug where it
+    would detect some Zen1 processors as Zen2. Zen2 processors
+    start at model number 48 and up.
+    
+    Signed-off-by: Vince Weaver <vincent.weaver@maine.edu>
+
+diff --git a/lib/pfmlib_amd64.c b/lib/pfmlib_amd64.c
+index c4497ea..8c85565 100644
+--- a/lib/pfmlib_amd64.c
++++ b/lib/pfmlib_amd64.c
+@@ -174,13 +174,10 @@ amd64_get_revision(pfm_amd64_config_t *cfg)
+ 	} else if (cfg->family == 21) { /* family 15h */
+ 		rev = PFM_PMU_AMD64_FAM15H_INTERLAGOS;
+ 	} else if (cfg->family == 23) { /* family 17h */
+-                switch (cfg->model) {
+-                case 49:
++                if (cfg->model >= 48)
+ 			rev = PFM_PMU_AMD64_FAM17H_ZEN2;
+-			break;
+-                default:
++		else
+                         rev = PFM_PMU_AMD64_FAM17H_ZEN1;
+-                }
+ 	} else if (cfg->family == 22) { /* family 16h */
+ 		rev = PFM_PMU_AMD64_FAM16H;
+ 	} else if (cfg->family == 25) { /* family 19h */
+
+commit 7970a2513cc077cc5d76db470d679ff948e3ff55
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Fri Feb 18 00:51:33 2022 -0800
+
+    fix perf_events raw encoding handling of event strings
+    
+    The pfm_perf_raw_match_event() was relying on sscanf to convert the
+    raw hexadecimal string into integer.
+    The problem with sscanf is that it stops at the first non hex character
+    but does not tell you where. This caused problems with wrongly named
+    events starting with 'r'. For instance, on AMD Zen3, the event
+    retired_uops does not exist, yet libpfm4 would encode at 0xe.
+    That is because the event starts with 'r' and therefore if libpfm4 fails
+    to find a match in the AMD Zen3 PMU, it will use the raw perf_event syntax
+    and the seocnd letter is 'e'. Then sscanf stops at the 't' and does not
+    report any error.
+    
+    Fix the problem by using strtoull() instead. It returns an end pointer.
+    In case the string contains non hex, that pointer will point to it.
+    
+    With this fix in place:
+    $ examples check_events retired_uops
+    fails on AMD Zen3.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/pfmlib_perf_event_raw.c b/lib/pfmlib_perf_event_raw.c
+index 4e7176c..4aab75f 100644
+--- a/lib/pfmlib_perf_event_raw.c
++++ b/lib/pfmlib_perf_event_raw.c
+@@ -27,6 +27,8 @@
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <ctype.h>
++#include <limits.h>
++#include <errno.h>
+ 
+ #include "pfmlib_priv.h"
+ #include "pfmlib_perf_event_priv.h"
+@@ -137,14 +139,15 @@ static int
+ pfm_perf_raw_match_event(void *this, pfmlib_event_desc_t *d, const char *e, const char *s)
+ {
+ 	uint64_t code;
+-	int ret;
++	char *endptr = NULL;
+ 
+ 	if (*s != 'r'  || !isxdigit(*(s+1)))
+ 		return 1;
+ 
+-	ret = sscanf(s+1, "%"PRIx64, &code);
+-	if (ret != 1)
++	code = strtoull(s+1, &endptr, 16);
++	if (code == ULLONG_MAX || errno == ERANGE|| (endptr && *endptr))
+ 		return 1;
++
+ 	/*
+ 	 * stash code in final position
+ 	 */
+
+commit 1770c118887aa21374ad8d9f816e660f2e809115
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Tue Apr 19 15:33:10 2022 -0700
+
+    Update AMD Zen3 core and L3 PMU event tables
+    
+    Based on PPR v0.50:
+    https://www.amd.com/system/files/TechDocs/55898_B1_pub_0.50.zip
+    
+    Thanks to Emmanuel @ UVSQ for pointing out the changes.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam19h_zen3.h b/lib/events/amd64_events_fam19h_zen3.h
+index e95ac69..10e0c20 100644
+--- a/lib/events/amd64_events_fam19h_zen3.h
++++ b/lib/events/amd64_events_fam19h_zen3.h
+@@ -514,6 +514,17 @@ static const amd64_umask_t amd64_fam19h_zen3_core_to_l2_cacheable_request_access
+   },
+ };
+ 
++static const amd64_umask_t amd64_fam19h_zen3_l2_prefetch_hit_l2[]={
++  { .uname  = "L2_HW_PREFETCHER",
++    .udesc  = "Number of requests generated by L2 hardware prefetcher",
++    .ucode  = 0x1f,
++  },
++  { .uname  = "L1_HW_PREFETCHER",
++    .udesc  = "Number of requests generated by L1 hardware prefetcher",
++    .ucode  = 0xe0,
++  },
++};
++
+ static const amd64_entry_t amd64_fam19h_zen3_pe[]={
+   { .name   = "RETIRED_SSE_AVX_FLOPS",
+     .desc   = "This is a retire-based event. The number of retired SSE/AVX FLOPS. The number of events logged per cycle can vary from 0 to 64. This event can count above 15 and therefore requires the MergeEvent",
+@@ -980,20 +991,42 @@ static const amd64_entry_t amd64_fam19h_zen3_pe[]={
+     .modmsk  = AMD64_FAM19H_ATTRS,
+     .code    = 0x70,
+     .flags   = 0,
+-    .ngrp    = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l2_prefetch_hit_l2),
++    .umasks = amd64_fam19h_zen3_l2_prefetch_hit_l2,
+   },
+   { .name   = "L2_PREFETCH_HIT_L3",
+     .desc   = "Number of L2 prefetches accepted by the L2 pipeline which miss the L2 cache and hit the L3",
+     .modmsk  = AMD64_FAM19H_ATTRS,
+     .code    = 0x71,
+     .flags   = 0,
+-    .ngrp    = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l2_prefetch_hit_l2),
++    .umasks = amd64_fam19h_zen3_l2_prefetch_hit_l2,
++  },
++  { .name   = "L2_PREFETCH_MISS_L3",
++    .desc   = "Number of L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3 caches",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0x72,
++    .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l2_prefetch_hit_l2),
++    .umasks = amd64_fam19h_zen3_l2_prefetch_hit_l2,
+   },
+   { .name   = "L2_PREFETCH_MISS_L3",
+     .desc   = "Number of L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3 caches",
+     .modmsk  = AMD64_FAM19H_ATTRS,
+     .code    = 0x72,
+     .flags   = 0,
++    .ngrp    = 1,
++    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l2_prefetch_hit_l2),
++    .umasks = amd64_fam19h_zen3_l2_prefetch_hit_l2,
++  },
++  { .name   = "OP_QUEUE_EMPTY",
++    .desc   = "Counts cycles where the OP queue is empty",
++    .modmsk  = AMD64_FAM19H_ATTRS,
++    .code    = 0xa9,
++    .flags   = 0,
+     .ngrp    = 0,
+   },
+ };
+diff --git a/lib/events/amd64_events_fam19h_zen3_l3.h b/lib/events/amd64_events_fam19h_zen3_l3.h
+index 523509e..7ae09ef 100644
+--- a/lib/events/amd64_events_fam19h_zen3_l3.h
++++ b/lib/events/amd64_events_fam19h_zen3_l3.h
+@@ -42,7 +42,7 @@ static const amd64_entry_t amd64_fam19h_zen3_l3_pe[]={
+     .umasks = amd64_fam19h_zen3_l3_requests,
+   },
+   { .name   = "UNC_L3_MISS_LATENCY",
+-    .desc   = "Accumulated miss latency in cycles - occupancy event",
++    .desc   = "Each cycle, this event increments by the total number of read requests outstanding from the CCX divided by XiSysFillLatencyDivider. The user can calculate the average system fill latency in cycles by multiplying by XiSysFillLatencyDivider and dividing by the total number of fill requests over the same period (counted by event 0x9A UserMask 0x1F). XiSysFillLatencyDivider is 16 for this product, but may change for future products",
+     .code    = 0x90,
+   },
+   { .name   = "UNC_L3_MISSES",
+diff --git a/tests/validate_x86.c b/tests/validate_x86.c
+index f1ac929..0155c54 100644
+--- a/tests/validate_x86.c
++++ b/tests/validate_x86.c
+@@ -7315,10 +7315,10 @@ static const test_event_t x86_test_events[]={
+ 	  .fstr = "amd64_fam19h_zen3::CYCLES_NOT_IN_HALT:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
+ 	{ SRC_LINE,
+-	  .name = "amd64_fam19h_zen3::L2_PREFETCH_HIT_L2",
++	  .name = "amd64_fam19h_zen3::L2_PREFETCH_HIT_L2:L2_HW_PREFETCHER",
+ 	  .count = 1,
+-	  .codes[0] = 0x530070ull,
+-	  .fstr = "amd64_fam19h_zen3::L2_PREFETCH_HIT_L2:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
++	  .codes[0] = 0x531f70ull,
++	  .fstr = "amd64_fam19h_zen3::L2_PREFETCH_HIT_L2:L2_HW_PREFETCHER:k=1:u=1:e=0:i=0:c=0:h=0:g=0",
+ 	},
+ 	{ SRC_LINE,
+ 	  .name = "amd64_fam19h_zen3::L1_DTLB_MISS:TLB_RELOAD_1G_L2_HIT:u",
+
+commit dfc6a6574b1d4447fb6742169dddbad0d46c5ede
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Wed Apr 20 00:35:43 2022 -0700
+
+    Add duplicate detection to AMD64 event validation
+    
+    Was missing compared to Intel X86.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/pfmlib_amd64.c b/lib/pfmlib_amd64.c
+index 0d9fb92..60d4ded 100644
+--- a/lib/pfmlib_amd64.c
++++ b/lib/pfmlib_amd64.c
+@@ -713,8 +713,8 @@ pfm_amd64_validate_table(void *this, FILE *fp)
+ 	pfmlib_pmu_t *pmu = this;
+ 	const amd64_entry_t *pe = this_pe(this);
+ 	const char *name =  pmu->name;
+-	unsigned int j, k;
+-	int i, ndfl;
++	unsigned int i, j, k;
++	int ndfl;
+ 	int error = 0;
+ 
+ 	if (!pmu->atdesc) {
+@@ -727,7 +727,7 @@ pfm_amd64_validate_table(void *this, FILE *fp)
+ 		error++;
+ 	}
+ 
+-	for(i=0; i < pmu->pme_count; i++) {
++	for(i=0; i < (unsigned int)pmu->pme_count; i++) {
+ 
+ 		if (!pe[i].name) {
+ 			fprintf(fp, "pmu: %s event%d: :: no name (prev event was %s)\n", pmu->name, i,
+@@ -822,6 +822,12 @@ pfm_amd64_validate_table(void *this, FILE *fp)
+ 				}
+ 			}
+ 		}
++		for (j=i+1; j < (unsigned int)pmu->pme_count; j++) {
++			if (pe[i].code == pe[j].code) {
++				fprintf(fp, "pmu: %s events %s and %s have the same code 0x%x\n", pmu->name, pe[i].name, pe[j].name, pe[i].code);
++				error++;
++			}
++		}
+ 	}
+ 	return error ? PFM_ERR_INVAL : PFM_SUCCESS;
+ }
+
+commit 3e19de455109672c5384e4defba9ba5b541b3915
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Wed Apr 20 00:37:25 2022 -0700
+
+    Fix duplicate L2_PREFETCH_MISS_L3 for AMD Zen3
+    
+    Was introduced by commit:
+            1770c118887a "Update AMD Zen3 core and L3 PMU event tables"
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam19h_zen3.h b/lib/events/amd64_events_fam19h_zen3.h
+index 10e0c20..2d76da9 100644
+--- a/lib/events/amd64_events_fam19h_zen3.h
++++ b/lib/events/amd64_events_fam19h_zen3.h
+@@ -1013,15 +1013,6 @@ static const amd64_entry_t amd64_fam19h_zen3_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l2_prefetch_hit_l2),
+     .umasks = amd64_fam19h_zen3_l2_prefetch_hit_l2,
+   },
+-  { .name   = "L2_PREFETCH_MISS_L3",
+-    .desc   = "Number of L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3 caches",
+-    .modmsk  = AMD64_FAM19H_ATTRS,
+-    .code    = 0x72,
+-    .flags   = 0,
+-    .ngrp    = 1,
+-    .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l2_prefetch_hit_l2),
+-    .umasks = amd64_fam19h_zen3_l2_prefetch_hit_l2,
+-  },
+   { .name   = "OP_QUEUE_EMPTY",
+     .desc   = "Counts cycles where the OP queue is empty",
+     .modmsk  = AMD64_FAM19H_ATTRS,
+
+commit 9580a003d83900569db3f2c7bc41e0e2ea7b88ef
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Wed Apr 20 19:56:03 2022 -0700
+
+    Fix amd64 duplicate event detection logic
+    
+    Must check flags as well as code otherwise false positive duplicate
+    are detected on AMD Fam10h Barcelona where some events appears as duplicate
+    when in fact they are for different revisions of the CPU.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/pfmlib_amd64.c b/lib/pfmlib_amd64.c
+index 60d4ded..aad8f26 100644
+--- a/lib/pfmlib_amd64.c
++++ b/lib/pfmlib_amd64.c
+@@ -823,7 +823,7 @@ pfm_amd64_validate_table(void *this, FILE *fp)
+ 			}
+ 		}
+ 		for (j=i+1; j < (unsigned int)pmu->pme_count; j++) {
+-			if (pe[i].code == pe[j].code) {
++			if (pe[i].code == pe[j].code && pe[i].flags == pe[j].flags) {
+ 				fprintf(fp, "pmu: %s events %s and %s have the same code 0x%x\n", pmu->name, pe[i].name, pe[j].name, pe[i].code);
+ 				error++;
+ 			}
+
+commit c7798469063288ca5829ab96c7c174dad5a08e74
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Thu Apr 21 15:01:07 2022 -0700
+
+    Rename OP_QUEUE_EMPTY to UOPS_QUEUE_EMPTY on AMD Zen3
+    
+    To be comptible with AMD Zen2.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam19h_zen3.h b/lib/events/amd64_events_fam19h_zen3.h
+index 2d76da9..d56164e 100644
+--- a/lib/events/amd64_events_fam19h_zen3.h
++++ b/lib/events/amd64_events_fam19h_zen3.h
+@@ -1013,8 +1013,8 @@ static const amd64_entry_t amd64_fam19h_zen3_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam19h_zen3_l2_prefetch_hit_l2),
+     .umasks = amd64_fam19h_zen3_l2_prefetch_hit_l2,
+   },
+-  { .name   = "OP_QUEUE_EMPTY",
+-    .desc   = "Counts cycles where the OP queue is empty",
++  { .name   = "UOPS_QUEUE_EMPTY",
++    .desc   = "Counts cycles where the decoded uops queue is empty",
+     .modmsk  = AMD64_FAM19H_ATTRS,
+     .code    = 0xa9,
+     .flags   = 0,

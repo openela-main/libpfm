@@ -1,0 +1,1341 @@
+commit 6c9e44b95a55b8bf62cbd64009c4c9b30964a66c
+Author: Steve Walk <steve.walk@cavium.com>
+Date:   Tue Mar 20 09:37:56 2018 -0700
+
+    update Cavium ThunderX2 with now public events
+    
+    This patch adds new model specific events to the
+    Cavium Thunder X2 core PMU. The updated list is based
+    on publicly available documentation from Cavium which
+    is available at:
+        https://cavium.com/resources.html
+    
+    Signed-off-by: Steve Walk  <steve.walk@cavium.com>
+
+diff --git a/lib/events/arm_cavium_tx2_events.h b/lib/events/arm_cavium_tx2_events.h
+index 67de9f8..198d33d 100644
+--- a/lib/events/arm_cavium_tx2_events.h
++++ b/lib/events/arm_cavium_tx2_events.h
+@@ -23,6 +23,9 @@
+  *
+  * ARM Architecture Reference Manual, ARMv8, for ARMv8-A architecture profile,
+  * ARM DDI 0487B.a (ID033117)
++ *
++ * Cavium ThunderX2 C99XX PMU Events (Abridged), July 31, 2018
++ * https://cavium.com/resources.html
+  */
+ 
+ static const arm_entry_t arm_thunderx2_pe[]={
+@@ -161,6 +164,11 @@ static const arm_entry_t arm_thunderx2_pe[]={
+ 	 .code = 0x1C,
+ 	 .desc = "Instruction architecturally executed (condition check pass)  Write to translation table base"
+ 	},
++	{.name = "CHAIN",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x1E,
++	 .desc = "For odd-numbered counters, increments the count by one for each overflow of the proceeding even counter"
++	},
+ 	{.name = "L1D_CACHE_ALLOCATE",
+ 	 .modmsk = ARMV8_ATTRS,
+ 	 .code = 0x1F,
+@@ -556,6 +564,274 @@ static const arm_entry_t arm_thunderx2_pe[]={
+ 	 .code = 0x91,
+ 	 .desc = "Release consistency instruction speculatively executed (store-release)"
+ 	},
+-
+-	/* END Cavium ThunderX2 specific events */
++	{.name = "L1D_LHS_VANOTP",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xC1,
++	 .desc = "A Load hit store retry"
++	},
++	{.name = "L1D_LHS_OVRLAP",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xC2,
++	 .desc = "A Load hit store retry, VA match, PA mismatch"
++	},
++	{.name = "L1D_LHS_VANOSD",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xC3,
++	 .desc = "A Load hit store retry, VA match, store data not issued"
++	},
++	{.name = "L1D_LHS_FWD",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xC4,
++	 .desc = "A Load hit store forwarding. Load completes"
++	},
++	{.name = "L1D_BNKCFL",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xC6,
++	 .desc = "Bank conflict load retry"
++	},
++	{.name = "L1D_LSMQ_FULL",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xC7,
++	 .desc = "LSMQ retry"
++	},
++	{.name = "L1D_LSMQ_HIT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xC8,
++	 .desc = "LSMQ hit retry"
++	},
++	{.name = "L1D_EXPB_MISS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xC9,
++	 .desc = "An external probe missed the L1"
++	},
++	{.name = "L1D_L2EV_MISS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xCA,
++	 .desc = "An L2 evict operation missed the L1"
++	},
++	{.name = "L1D_EXPB_HITM",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xCB,
++	 .desc = "An external probe hit a modified line in the L1"
++	},
++	{.name = "L1D_L2EV_HITM",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xCC,
++	 .desc = "An L2 evict operation hit a modified line in the L1"
++	},
++	{.name = "L1D_EXPB_HIT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xCD,
++	 .desc = "An external probe hit in the L1"
++	},
++	{.name = "L1D_L2EV_HIT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xCE,
++	 .desc = "An L2 evict operation hit in the L1"
++	},
++	{.name = "L1D_EXPB_RETRY",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xCF,
++	 .desc = "An external probe hit was retried"
++	},
++	{.name = "L1D_L2EV_RETRY",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xD0,
++	 .desc = "An L2 evict operation was retried"
++	},
++	{.name = "L1D_ST_RMW",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xD1,
++	 .desc = "A read modify write store was drained and updated the L1"
++	},
++	{.name = "L1D_LSMQ00_LDREQ",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xD2,
++	 .desc = "A load has allocated LSMQ entry 0"
++	},
++	{.name = "L1D_LSMQ00_LDVLD",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xD3,
++	 .desc = "LSMQ entry 0 was initiated by a load"
++	},
++	{.name = "L1D_LSMQ15_STREQ",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xD4,
++	 .desc = "A store was allocated LSMQ entry 15"
++	},
++	{.name = "L1D_LSMQ15_STVLD",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xD5,
++	 .desc = "LSMQ entry 15 was initiated by a store"
++	},
++	{.name = "L1D_PB_FLUSH",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xD6,
++	 .desc = "LRQ ordering flush"
++	},
++	{.name = "BR_COND_MIS_PRED_RETIRED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xE0,
++	 .desc = "Conditional branch instruction executed, but mis-predicted"
++	},
++	{.name = "BR_IND_MIS_PRED_RETIRED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xE1,
++	 .desc = "Indirect branch instruction executed, but mis-predicted"
++	},
++	{.name = "BR_RETURN_MIS_PRED_RETIRED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xE2,
++	 .desc = "Return branch instruction executed, but mis-predicted"
++	},
++	{.name = "OP_RETIRED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xE8,
++	 .desc = "Uops executed"
++	},
++	{.name = "LD_OP_RETIRED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xE9,
++	 .desc = "Load uops executed"
++	},
++	{.name = "ST_OP_RETIRED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xEA,
++	 .desc = "Store uops executed"
++	},
++	{.name = "FUSED_OP_RETIRED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xEB,
++	 .desc = "Fused uops executed"
++	},
++	{.name = "IRQ_MASK",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xF8,
++	 .desc = "Cumulative duration of a PSTATE.I interrupt mask set to 1"
++	},
++	{.name = "FIQ_MASK",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xF9,
++	 .desc = "Cumulative duration of a PSTATE.F interrupt mask set to 1"
++	},
++	{.name = "SERROR_MASK",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0xFA,
++	 .desc = "Cumulative duration of PSTATE.A interrupt mask set to 1"
++	},
++	{.name = "WFIWFE_SLEEP",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x108,
++	 .desc = "Number of cycles in which CPU is in low power mode due to WFI/WFE instruction"
++	},
++	{.name = "L2TLB_4K_PAGE_MISS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x127,
++	 .desc = "L2 TLB lookup miss using 4K page size"
++	},
++	{.name = "L2TLB_64K_PAGE_MISS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x128,
++	 .desc = "L2 TLB lookup miss using 64K page size"
++	},
++	{.name = "L2TLB_2M_PAGE_MISS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x129,
++	 .desc = "L2 TLB lookup miss using 2M page size"
++	},
++	{.name = "L2TLB_512M_PAGE_MISS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x12A,
++	 .desc = "L2 TLB lookup miss using 512M page size"
++	},
++	{.name = "ISB_EMPTY",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x150,
++	 .desc = "Number of cycles during which micro-op skid-buffer is empty"
++	},
++	{.name = "ISB_FULL",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x151,
++	 .desc = "Number of cycles during which micro-op skid-buffer is back-pressuring decode"
++	},
++	{.name = "STALL_NOTSELECTED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x152,
++	 .desc = "Number of cycles during which thread was available for dispatch but not selected"
++	},
++	{.name = "ROB_RECYCLE",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x153,
++	 .desc = "Number of cycles in which one or more valid micro-ops did not dispatch due to ROB full"
++	},
++	{.name = "ISSQ_RECYCLE",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x154,
++	 .desc = "Number of cycles in which one or more valid micro-ops did not dispatch due to ISSQ full"
++	},
++	{.name = "GPR_RECYCLE",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x155,
++	 .desc = "Number of cycles in which one or more valid micro-ops did not dispatch due to GPR full"
++	},
++	{.name = "FPR_RECYCLE",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x156,
++	 .desc = "Number of cycles in which one or more valid micro-ops did not dispatch due to FPR full"
++	},
++	{.name = "LRQ_RECYCLE",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x158,
++	 .desc = "Number of cycles in which one or more valid micro-ops did not dispatch due to LRQ full"
++	},
++	{.name = "SRQ_RECYCLE",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x159,
++	 .desc = "Number of cycles in which one or more valid micro-ops did not dispatch due to SRQ full"
++	},
++	{.name = "BSR_RECYCLE",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x15B,
++	 .desc = "Number of cycles in which one or more valid micro-ops did not dispatch due to BSR full"
++	},
++	{.name = "UOPSFUSED",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x164,
++	 .desc = "Number of fused micro-ops dispatched"
++	},
++	{.name = "L2D_TLBI_INT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x20B,
++	 .desc = "Internal mmu tlbi cacheops"
++	},
++	{.name = "L2D_TLBI_EXT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x20C,
++	 .desc = "External mmu tlbi cacheops"
++	},
++	{.name = "L2D_HWPF_DMD_HIT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x218,
++	 .desc = "Scu ld/st requests that hit cache or msg for lines brought in by the hardware prefetcher"
++	},
++	{.name = "L2D_HWPF_REQ_VAL",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x219,
++	 .desc = "Scu hwpf requests into the pipeline"
++	},
++	{.name = "L2D_HWPF_REQ_LD",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x21A,
++	 .desc = "Scu hwpf ld requests into the pipeline"
++	},
++	{.name = "L2D_HWPF_REQ_MISS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x21B,
++	 .desc = "Scu hwpf ld requests that miss"
++	},
++	{.name = "L2D_HWPF_NEXT_LINE",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = 0x21C,
++	 .desc = "Scu hwpf next line requests generated"
++	},
+ };
+From 0b050ca9ba2a2bf74f87fa3a8b4ed8aec9d1dfa8 Mon Sep 17 00:00:00 2001
+From: Shay Gal-On <sgalon@marvell.com>
+Date: Wed, 23 Oct 2019 18:58:03 -0700
+Subject: [PATCH 1/4] ThunderX2 uncore support
+
+This patch adds ThundeX2 uncore PMUs support.
+
+The following uncore PMUs are added:
+- tx2_llc0, tx2_llc1 (last level cache)
+- tx2_dmc0, tx2_dmc1 (memory controller)
+
+Based on documentation available at:
+https://www.marvell.com/documents/hrur6mybdvk5uki1w0z7/
+
+Signed-off-by: Shay Gal-On <sgalon@marvell.com>
+---
+ include/perfmon/pfmlib.h           |   5 ++
+ lib/Makefile                       |   2 +-
+ lib/events/arm_cavium_tx2_events.h |  61 +++++++++++++
+ lib/pfmlib_arm_armv8.c             |  55 ++++++++++++
+ lib/pfmlib_common.c                |   4 +
+ lib/pfmlib_priv.h                  |   6 ++
+ lib/pfmlib_tx2_unc_perf_event.c    | 139 +++++++++++++++++++++++++++++
+ tests/validate_arm64.c             |   6 ++
+ 8 files changed, 277 insertions(+), 1 deletion(-)
+ create mode 100644 lib/pfmlib_tx2_unc_perf_event.c
+
+diff --git a/include/perfmon/pfmlib.h b/include/perfmon/pfmlib.h
+index 09c673d..20d5feb 100644
+--- a/include/perfmon/pfmlib.h
++++ b/include/perfmon/pfmlib.h
+@@ -546,6 +546,11 @@ typedef enum {
+ 	PFM_PMU_INTEL_KNM_UNC_UBOX,	/* Intel Knights Mill Ubox uncore */
+ 	PFM_PMU_INTEL_KNM_UNC_M2PCIE,	/* Intel Knights Mill M2PCIe uncore */
+ 	PFM_PMU_ARM_THUNDERX2,		/* Cavium ThunderX2 */
++
++	PFM_PMU_ARM_THUNDERX2_DMC0,	/* Cavium ThunderX2 DMC unit 0 uncore */
++	PFM_PMU_ARM_THUNDERX2_DMC1,	/* Cavium ThunderX2 DMC unit 1 uncore */
++	PFM_PMU_ARM_THUNDERX2_LLC0,	/* Cavium ThunderX2 LLC unit 0 uncore */
++	PFM_PMU_ARM_THUNDERX2_LLC1,	/* Cavium ThunderX2 LLC unit 1 uncore */
+ 	/* MUST ADD NEW PMU MODELS HERE */
+ 
+ 	PFM_PMU_MAX			/* end marker */
+diff --git a/lib/Makefile b/lib/Makefile
+index 2eb3ebb..f45515d 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -188,7 +188,7 @@ SRCS += pfmlib_arm_perf_event.c
+ endif
+ 
+ INCARCH = $(INC_ARM64)
+-SRCS   += pfmlib_arm.c pfmlib_arm_armv8.c
++SRCS   += pfmlib_arm.c pfmlib_arm_armv8.c pfmlib_tx2_unc_perf_event.c
+ CFLAGS += -DCONFIG_PFMLIB_ARCH_ARM64
+ endif
+ 
+diff --git a/lib/events/arm_cavium_tx2_events.h b/lib/events/arm_cavium_tx2_events.h
+index 198d33d..18d8931 100644
+--- a/lib/events/arm_cavium_tx2_events.h
++++ b/lib/events/arm_cavium_tx2_events.h
+@@ -835,3 +835,64 @@ static const arm_entry_t arm_thunderx2_pe[]={
+ 	 .desc = "Scu hwpf next line requests generated"
+ 	},
+ };
++
++#define ARM_TX2_CORE_EVENT_COUNT	(sizeof(arm_thunderx2_pe)/sizeof(arm_entry_t))
++
++/* L3C event IDs */
++#define L3_EVENT_READ_REQ               0xD
++#define L3_EVENT_WRITEBACK_REQ          0xE
++#define L3_EVENT_EVICT_REQ              0x13
++#define L3_EVENT_READ_HIT               0x17
++#define L3_EVENT_MAX                    0x18
++
++/* DMC event IDs */
++#define DMC_EVENT_COUNT_CYCLES          0x1
++#define DMC_EVENT_WRITE_TXNS            0xB
++#define DMC_EVENT_DATA_TRANSFERS        0xD
++#define DMC_EVENT_READ_TXNS             0xF
++#define DMC_EVENT_MAX                   0x10
++
++static const arm_entry_t arm_thunderx2_unc_dmc_pe[]={
++	{.name = "UNC_DMC_READS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = DMC_EVENT_READ_TXNS,
++	 .desc = "Memory read transactions"
++	},
++	{.name = "UNC_DMC_WRITES",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = DMC_EVENT_WRITE_TXNS,
++	 .desc = "Memory write transactions"
++	},
++};
++
++#define ARM_TX2_CORE_DMC_COUNT	(sizeof(arm_thunderx2_unc_dmc_pe)/sizeof(arm_entry_t))
++
++static const arm_entry_t arm_thunderx2_unc_llc_pe[]={
++	{.name = "UNC_LLC_READ",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = L3_EVENT_READ_REQ,
++	 .desc = "Read requests to LLC"
++	},
++	{.name = "UNC_LLC_EVICT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = L3_EVENT_EVICT_REQ,
++	 .desc = "Evict requests to LLC"
++	},
++	{.name = "UNC_LLC_READ_HIT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = L3_EVENT_READ_HIT,
++	 .desc = "Read requests to LLC which hit"
++	},
++	{.name = "UNC_LLC_WB",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = L3_EVENT_WRITEBACK_REQ,
++	 .desc = "Writeback requests to LLC"
++	}
++};
++
++#define ARM_TX2_CORE_LLC_COUNT	(sizeof(arm_thunderx2_unc_llc_pe)/sizeof(arm_entry_t))
++//Uncore accessor functions
++int
++pfm_tx2_unc_get_event_encoding(void *this, pfmlib_event_desc_t *e);
++int
++pfm_tx2_unc_get_perf_encoding(void *this, pfmlib_event_desc_t *e);
+diff --git a/lib/pfmlib_arm_armv8.c b/lib/pfmlib_arm_armv8.c
+index 0a3313f..35ff70f 100644
+--- a/lib/pfmlib_arm_armv8.c
++++ b/lib/pfmlib_arm_armv8.c
+@@ -203,3 +203,58 @@ pfmlib_pmu_t arm_thunderx2_support={
+ 	.get_event_nattrs	= pfm_arm_get_event_nattrs,
+ };
+ 
++// For uncore, each socket has a separate perf name, otherwise they are the same, use macro
++
++#define DEFINE_TX2_DMC(n) \
++pfmlib_pmu_t arm_thunderx2_dmc##n##_support={ \
++	.desc			= "Cavium ThunderX2 Node"#n" DMC", \
++	.name			= "tx2_dmc"#n, \
++	.perf_name		= "uncore_dmc_"#n, \
++	.pmu			= PFM_PMU_ARM_THUNDERX2_DMC##n, \
++	.pme_count		= LIBPFM_ARRAY_SIZE(arm_thunderx2_unc_dmc_pe), \
++	.type			= PFM_PMU_TYPE_UNCORE, \
++	.pe			= arm_thunderx2_unc_dmc_pe, \
++	.pmu_detect		= pfm_arm_detect_thunderx2, \
++	.max_encoding		= 1, \
++	.num_cntrs		= 4, \
++	.get_event_encoding[PFM_OS_NONE] = pfm_tx2_unc_get_event_encoding, \
++	 PFMLIB_ENCODE_PERF(pfm_tx2_unc_get_perf_encoding),		\
++	.get_event_first	= pfm_arm_get_event_first, \
++	.get_event_next		= pfm_arm_get_event_next,  \
++	.event_is_valid		= pfm_arm_event_is_valid,  \
++	.validate_table		= pfm_arm_validate_table,  \
++	.get_event_info		= pfm_arm_get_event_info,  \
++	.get_event_attr_info	= pfm_arm_get_event_attr_info,	\
++	 PFMLIB_VALID_PERF_PATTRS(pfm_arm_perf_validate_pattrs),\
++	.get_event_nattrs	= pfm_arm_get_event_nattrs, \
++};
++
++DEFINE_TX2_DMC(0);
++DEFINE_TX2_DMC(1);
++
++#define DEFINE_TX2_LLC(n) \
++pfmlib_pmu_t arm_thunderx2_llc##n##_support={ \
++	.desc			= "Cavium ThunderX2 node "#n" LLC", \
++	.name			= "tx2_llc"#n, \
++	.perf_name		= "uncore_l3c_"#n, \
++	.pmu			= PFM_PMU_ARM_THUNDERX2_LLC##n, \
++	.pme_count		= LIBPFM_ARRAY_SIZE(arm_thunderx2_unc_llc_pe), \
++	.type			= PFM_PMU_TYPE_UNCORE, \
++	.pe			= arm_thunderx2_unc_llc_pe, \
++	.pmu_detect		= pfm_arm_detect_thunderx2, \
++	.max_encoding		= 1, \
++	.num_cntrs		= 4, \
++	.get_event_encoding[PFM_OS_NONE] = pfm_tx2_unc_get_event_encoding, \
++	 PFMLIB_ENCODE_PERF(pfm_tx2_unc_get_perf_encoding),		\
++	.get_event_first	= pfm_arm_get_event_first, \
++	.get_event_next		= pfm_arm_get_event_next,  \
++	.event_is_valid		= pfm_arm_event_is_valid,  \
++	.validate_table		= pfm_arm_validate_table,  \
++	.get_event_info		= pfm_arm_get_event_info,  \
++	.get_event_attr_info	= pfm_arm_get_event_attr_info,	\
++	 PFMLIB_VALID_PERF_PATTRS(pfm_arm_perf_validate_pattrs),\
++	.get_event_nattrs	= pfm_arm_get_event_nattrs, \
++};
++
++DEFINE_TX2_LLC(0);
++DEFINE_TX2_LLC(1);
+diff --git a/lib/pfmlib_common.c b/lib/pfmlib_common.c
+index 2b6cbb4..8314d4b 100644
+--- a/lib/pfmlib_common.c
++++ b/lib/pfmlib_common.c
+@@ -490,6 +490,10 @@ static pfmlib_pmu_t *pfmlib_pmus[]=
+ 	&arm_cortex_a53_support,
+ 	&arm_xgene_support,
+ 	&arm_thunderx2_support,
++	&arm_thunderx2_dmc0_support,
++	&arm_thunderx2_dmc1_support,
++	&arm_thunderx2_llc0_support,
++	&arm_thunderx2_llc1_support,
+ #endif
+ 
+ #ifdef CONFIG_PFMLIB_ARCH_S390X
+diff --git a/lib/pfmlib_priv.h b/lib/pfmlib_priv.h
+index b0070a6..cb83f43 100644
+--- a/lib/pfmlib_priv.h
++++ b/lib/pfmlib_priv.h
+@@ -644,7 +644,13 @@ extern pfmlib_pmu_t arm_qcom_krait_support;
+ extern pfmlib_pmu_t arm_cortex_a57_support;
+ extern pfmlib_pmu_t arm_cortex_a53_support;
+ extern pfmlib_pmu_t arm_xgene_support;
++
+ extern pfmlib_pmu_t arm_thunderx2_support;
++extern pfmlib_pmu_t arm_thunderx2_dmc0_support;
++extern pfmlib_pmu_t arm_thunderx2_dmc1_support;
++extern pfmlib_pmu_t arm_thunderx2_llc0_support;
++extern pfmlib_pmu_t arm_thunderx2_llc1_support;
++
+ extern pfmlib_pmu_t mips_74k_support;
+ extern pfmlib_pmu_t s390x_cpum_cf_support;
+ extern pfmlib_pmu_t s390x_cpum_sf_support;
+diff --git a/lib/pfmlib_tx2_unc_perf_event.c b/lib/pfmlib_tx2_unc_perf_event.c
+new file mode 100644
+index 0000000..1a04e1d
+--- /dev/null
++++ b/lib/pfmlib_tx2_unc_perf_event.c
+@@ -0,0 +1,139 @@
++#include <sys/types.h>
++#include <string.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <stdarg.h>
++#include <limits.h>
++
++/* private headers */
++#include "pfmlib_priv.h"
++#include "pfmlib_perf_event_priv.h"
++#include "pfmlib_arm_priv.h"
++
++typedef union {
++	uint64_t val;
++	struct {
++		unsigned long unc_event:8;	/* event code */
++		unsigned long unc_umask:8;	/* unit mask */
++		unsigned long unc_res1:1;	/* reserved */
++		unsigned long unc_rst:1;	/* reset */
++		unsigned long unc_edge:1;	/* edge detect */
++		unsigned long unc_res2:3;	/* reserved */
++		unsigned long unc_en:1;		/* enable */
++		unsigned long unc_inv:1;	/* invert counter mask */
++		unsigned long unc_thres:8;	/* counter mask */
++		unsigned long unc_res3:32;	/* reserved */
++	} com; /* covers common fields for DMC/L3C */
++} tx2_unc_data_t;
++
++static void
++display_reg(void *this, pfmlib_event_desc_t *e, tx2_unc_data_t reg);
++static void
++display_com(void *this, pfmlib_event_desc_t *e, void *val);
++static int
++find_pmu_type_by_name(const char *name);
++
++int
++pfm_tx2_unc_get_event_encoding(void *this, pfmlib_event_desc_t *e)
++{
++	//from pe field in for the uncore, get the array with all the event defs
++	const arm_entry_t *event_list = this_pe(this);
++	tx2_unc_data_t reg;
++	//get code for the event from the table
++	reg.val = event_list[e->event].code;
++	//pass the data back to the caller
++	e->codes[0] = reg.val;
++	e->count = 1;
++	evt_strcat(e->fstr, "%s", event_list[e->event].name);
++	display_reg(this, e, reg);
++	return PFM_SUCCESS;
++}
++
++int
++pfm_tx2_unc_get_perf_encoding(void *this, pfmlib_event_desc_t *e)
++{
++	pfmlib_pmu_t *pmu = this;
++	struct perf_event_attr *attr = e->os_data;
++	tx2_unc_data_t reg;
++	int ret;
++
++	if (!pmu->get_event_encoding[PFM_OS_NONE])
++		return PFM_ERR_NOTSUPP;
++
++	ret = pmu->get_event_encoding[PFM_OS_NONE](this, e);
++	if (ret != PFM_SUCCESS)
++		return ret;
++	//get pmu type to probe
++	ret = find_pmu_type_by_name(pmu->perf_name);
++	if (ret < 0)
++		return ret;
++
++	attr->type = ret;
++	//get code to provide to the uncore pmu probe
++	reg.val = e->codes[0];
++	attr->config = reg.val;
++
++	// if needed, can use attr->config1 or attr->config2 for extra info from event structure defines e->codes[i]
++
++	// uncore measures at all priv levels
++	attr->exclude_hv = 0;
++	attr->exclude_kernel = 0;
++	attr->exclude_user = 0;
++
++	return PFM_SUCCESS;
++}
++
++
++static void
++display_reg(void *this, pfmlib_event_desc_t *e, tx2_unc_data_t reg)
++{
++	pfmlib_pmu_t *pmu = this;
++	if (pmu->display_reg)
++		pmu->display_reg(this, e, &reg);
++	else
++		display_com(this, e, &reg);
++}
++
++static void
++display_com(void *this, pfmlib_event_desc_t *e, void *val)
++{
++	const arm_entry_t *pe = this_pe(this);
++	tx2_unc_data_t *reg = val;
++
++	__pfm_vbprintf("[UNC=0x%"PRIx64" event=0x%x umask=0x%x en=%d "
++		       "inv=%d edge=%d thres=%d] %s\n",
++			reg->val,
++			reg->com.unc_event,
++			reg->com.unc_umask,
++			reg->com.unc_en,
++			reg->com.unc_inv,
++			reg->com.unc_edge,
++			reg->com.unc_thres,
++			pe[e->event].name);
++}
++
++static int
++find_pmu_type_by_name(const char *name)
++{
++	char filename[PATH_MAX];
++	FILE *fp;
++	int ret, type;
++
++	if (!name)
++		return PFM_ERR_NOTSUPP;
++
++	sprintf(filename, "/sys/bus/event_source/devices/%s/type", name);
++
++	fp = fopen(filename, "r");
++	if (!fp)
++		return PFM_ERR_NOTSUPP;
++
++	ret = fscanf(fp, "%d", &type);
++	if (ret != 1)
++		type = PFM_ERR_NOTSUPP;
++
++	fclose(fp);
++
++	return type;
++}
++
+diff --git a/tests/validate_arm64.c b/tests/validate_arm64.c
+index f7f021a..35eb6ef 100644
+--- a/tests/validate_arm64.c
++++ b/tests/validate_arm64.c
+@@ -177,6 +177,12 @@ static const test_event_t arm64_test_events[]={
+ 	  .codes[0] = 0x8000008,
+ 	  .fstr = "arm_thunderx2::INST_RETIRED:k=1:u=1:hv=0",
+ 	},
++	{ SRC_LINE,
++	  .name = "tx2_dmc1::UNC_DMC_READS",
++	  .ret  = PFM_SUCCESS,
++	  .count = 1,
++	  .codes[0] = 0xf,
++	},
+ };
+ #define NUM_TEST_EVENTS (int)(sizeof(arm64_test_events)/sizeof(test_event_t))
+ 
+-- 
+2.21.0
+
+From 6641952170c23c5ab69c1af19197a9d8284c1e53 Mon Sep 17 00:00:00 2001
+From: Shay Gal-On <sgalon@cavium.com>
+Date: Thu, 21 Nov 2019 10:41:26 -0800
+Subject: [PATCH 2/4] Moved TX2 uncore event to separate file
+
+To make event files cleaner.
+Also added link to marvell doc publishing the uncore event lists.
+
+Signed-off-by: Shay Gal-On <sgalon@marvell.com>
+---
+ lib/Makefile                            |  8 ++-
+ lib/events/arm_cavium_tx2_events.h      | 61 -----------------
+ lib/events/arm_marvell_tx2_unc_events.h | 90 +++++++++++++++++++++++++
+ lib/pfmlib_arm_armv8.c                  |  3 +-
+ 4 files changed, 97 insertions(+), 65 deletions(-)
+ create mode 100755 lib/events/arm_marvell_tx2_unc_events.h
+
+diff --git a/lib/Makefile b/lib/Makefile
+index f45515d..686264b 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -360,11 +360,13 @@ INC_ARM=pfmlib_arm_priv.h			\
+ 	events/arm_cortex_a15_events.h		\
+ 	events/arm_cortex_a57_events.h		\
+ 	events/arm_cortex_a53_events.h		\
+-	events/arm_cavium_tx2_events.h
++	events/arm_cavium_tx2_events.h		\
++	events/arm_marvell_tx2_unc_events.h
+ 
+ INC_ARM64=events/arm_cortex_a57_events.h	\
+-	  events/arm_cortex_a53_events.h	\
+-	  events/arm_cavium_tx2_events.h
++	events/arm_cortex_a53_events.h	\
++	events/arm_cavium_tx2_events.h	\
++	events/arm_marvell_tx2_unc_events.h
+ 
+ INCDEP=$(INC_COMMON) $(INCARCH)
+ 
+diff --git a/lib/events/arm_cavium_tx2_events.h b/lib/events/arm_cavium_tx2_events.h
+index 18d8931..198d33d 100644
+--- a/lib/events/arm_cavium_tx2_events.h
++++ b/lib/events/arm_cavium_tx2_events.h
+@@ -835,64 +835,3 @@ static const arm_entry_t arm_thunderx2_pe[]={
+ 	 .desc = "Scu hwpf next line requests generated"
+ 	},
+ };
+-
+-#define ARM_TX2_CORE_EVENT_COUNT	(sizeof(arm_thunderx2_pe)/sizeof(arm_entry_t))
+-
+-/* L3C event IDs */
+-#define L3_EVENT_READ_REQ               0xD
+-#define L3_EVENT_WRITEBACK_REQ          0xE
+-#define L3_EVENT_EVICT_REQ              0x13
+-#define L3_EVENT_READ_HIT               0x17
+-#define L3_EVENT_MAX                    0x18
+-
+-/* DMC event IDs */
+-#define DMC_EVENT_COUNT_CYCLES          0x1
+-#define DMC_EVENT_WRITE_TXNS            0xB
+-#define DMC_EVENT_DATA_TRANSFERS        0xD
+-#define DMC_EVENT_READ_TXNS             0xF
+-#define DMC_EVENT_MAX                   0x10
+-
+-static const arm_entry_t arm_thunderx2_unc_dmc_pe[]={
+-	{.name = "UNC_DMC_READS",
+-	 .modmsk = ARMV8_ATTRS,
+-	 .code = DMC_EVENT_READ_TXNS,
+-	 .desc = "Memory read transactions"
+-	},
+-	{.name = "UNC_DMC_WRITES",
+-	 .modmsk = ARMV8_ATTRS,
+-	 .code = DMC_EVENT_WRITE_TXNS,
+-	 .desc = "Memory write transactions"
+-	},
+-};
+-
+-#define ARM_TX2_CORE_DMC_COUNT	(sizeof(arm_thunderx2_unc_dmc_pe)/sizeof(arm_entry_t))
+-
+-static const arm_entry_t arm_thunderx2_unc_llc_pe[]={
+-	{.name = "UNC_LLC_READ",
+-	 .modmsk = ARMV8_ATTRS,
+-	 .code = L3_EVENT_READ_REQ,
+-	 .desc = "Read requests to LLC"
+-	},
+-	{.name = "UNC_LLC_EVICT",
+-	 .modmsk = ARMV8_ATTRS,
+-	 .code = L3_EVENT_EVICT_REQ,
+-	 .desc = "Evict requests to LLC"
+-	},
+-	{.name = "UNC_LLC_READ_HIT",
+-	 .modmsk = ARMV8_ATTRS,
+-	 .code = L3_EVENT_READ_HIT,
+-	 .desc = "Read requests to LLC which hit"
+-	},
+-	{.name = "UNC_LLC_WB",
+-	 .modmsk = ARMV8_ATTRS,
+-	 .code = L3_EVENT_WRITEBACK_REQ,
+-	 .desc = "Writeback requests to LLC"
+-	}
+-};
+-
+-#define ARM_TX2_CORE_LLC_COUNT	(sizeof(arm_thunderx2_unc_llc_pe)/sizeof(arm_entry_t))
+-//Uncore accessor functions
+-int
+-pfm_tx2_unc_get_event_encoding(void *this, pfmlib_event_desc_t *e);
+-int
+-pfm_tx2_unc_get_perf_encoding(void *this, pfmlib_event_desc_t *e);
+diff --git a/lib/events/arm_marvell_tx2_unc_events.h b/lib/events/arm_marvell_tx2_unc_events.h
+new file mode 100755
+index 0000000..9b0a1b4
+--- /dev/null
++++ b/lib/events/arm_marvell_tx2_unc_events.h
+@@ -0,0 +1,90 @@
++/*
++ * Copyright (c) 2019 Marvell Technology Group Ltd
++ * Contributed by Shay Gal-On <sgalon@marvell.com>
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
++ * of the Software, and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
++ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
++ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
++ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
++ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ * Marvell ThunderX2
++ *
++ * ARM Architecture Reference Manual, ARMv8, for ARMv8-A architecture profile,
++ * ARM DDI 0487B.a (ID033117)
++ *
++ * Marvell ThunderX2 C99XX Core and Uncore PMU Events (Abridged) can be found at
++ * https://www.marvell.com/documents/hrur6mybdvk5uki1w0z7/
++ *
++ */
++
++
++/* L3C event IDs */
++#define L3_EVENT_READ_REQ               0xD
++#define L3_EVENT_WRITEBACK_REQ          0xE
++#define L3_EVENT_EVICT_REQ              0x13
++#define L3_EVENT_READ_HIT               0x17
++#define L3_EVENT_MAX                    0x18
++
++/* DMC event IDs */
++#define DMC_EVENT_COUNT_CYCLES          0x1
++#define DMC_EVENT_WRITE_TXNS            0xB
++#define DMC_EVENT_DATA_TRANSFERS        0xD
++#define DMC_EVENT_READ_TXNS             0xF
++#define DMC_EVENT_MAX                   0x10
++
++static const arm_entry_t arm_thunderx2_unc_dmc_pe[]={
++	{.name = "UNC_DMC_READS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = DMC_EVENT_READ_TXNS,
++	 .desc = "Memory read transactions"
++	},
++	{.name = "UNC_DMC_WRITES",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = DMC_EVENT_WRITE_TXNS,
++	 .desc = "Memory write transactions"
++	},
++};
++
++#define ARM_TX2_CORE_DMC_COUNT	(sizeof(arm_thunderx2_unc_dmc_pe)/sizeof(arm_entry_t))
++
++static const arm_entry_t arm_thunderx2_unc_llc_pe[]={
++	{.name = "UNC_LLC_READ",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = L3_EVENT_READ_REQ,
++	 .desc = "Read requests to LLC"
++	},
++	{.name = "UNC_LLC_EVICT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = L3_EVENT_EVICT_REQ,
++	 .desc = "Evict requests to LLC"
++	},
++	{.name = "UNC_LLC_READ_HIT",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = L3_EVENT_READ_HIT,
++	 .desc = "Read requests to LLC which hit"
++	},
++	{.name = "UNC_LLC_WB",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = L3_EVENT_WRITEBACK_REQ,
++	 .desc = "Writeback requests to LLC"
++	}
++};
++
++#define ARM_TX2_CORE_LLC_COUNT	(sizeof(arm_thunderx2_unc_llc_pe)/sizeof(arm_entry_t))
++//Uncore accessor functions
++int
++pfm_tx2_unc_get_event_encoding(void *this, pfmlib_event_desc_t *e);
++int
++pfm_tx2_unc_get_perf_encoding(void *this, pfmlib_event_desc_t *e);
+diff --git a/lib/pfmlib_arm_armv8.c b/lib/pfmlib_arm_armv8.c
+index 35ff70f..291ac60 100644
+--- a/lib/pfmlib_arm_armv8.c
++++ b/lib/pfmlib_arm_armv8.c
+@@ -33,7 +33,8 @@
+ #include "events/arm_cortex_a57_events.h"    /* A57 event tables */
+ #include "events/arm_cortex_a53_events.h"    /* A53 event tables */
+ #include "events/arm_xgene_events.h"         /* Applied Micro X-Gene tables */
+-#include "events/arm_cavium_tx2_events.h"    /* Cavium ThunderX2 tables */
++#include "events/arm_cavium_tx2_events.h"    	/* Marvell ThunderX2 tables */
++#include "events/arm_marvell_tx2_unc_events.h" 	/* Marvell ThunderX2 PMU tables */
+ 
+ static int
+ pfm_arm_detect_cortex_a57(void *this)
+-- 
+2.21.0
+
+From dc1da4573eb8d24bdf64b9bb5e04ed956075d712 Mon Sep 17 00:00:00 2001
+From: Shay Gal-On <sgalon@cavium.com>
+Date: Mon, 25 Nov 2019 12:00:15 -0800
+Subject: [PATCH 3/4] Add ThunderX2 DMC events and CCPI events
+
+This patch adds missing 2 DMC events for ThunderX2
+and adds support for the Cross Core Complex Interconnect
+(CCPI) PMU and events.
+
+The following PMU models are added:
+ - tx2_ccpi0, tx2_ccpi1
+ - tx2_dmc0, tx2_dmc1
+
+Signed-off-by: Shay Gal-On <sgalon@marvell.com>
+---
+ include/perfmon/pfmlib.h                |  12 +--
+ lib/Makefile                            |   2 +-
+ lib/events/arm_marvell_tx2_unc_events.h |  42 ++++++++++
+ lib/pfmlib_arm_armv8.c                  |  33 +++++++-
+ lib/pfmlib_common.c                     |   8 ++
+ lib/pfmlib_priv.h                       |   2 +
+ lib/pfmlib_tx2_unc_perf_event.c         | 101 ++++++++++--------------
+ tests/validate_arm64.c                  |  15 ++++
+ 8 files changed, 148 insertions(+), 67 deletions(-)
+
+diff --git a/include/perfmon/pfmlib.h b/include/perfmon/pfmlib.h
+index 20d5feb..3f1d2f5 100644
+--- a/include/perfmon/pfmlib.h
++++ b/include/perfmon/pfmlib.h
+@@ -543,12 +543,14 @@ typedef enum {
+ 
+ 	PFM_PMU_INTEL_KNM_UNC_UBOX,	/* Intel Knights Mill Ubox uncore */
+ 	PFM_PMU_INTEL_KNM_UNC_M2PCIE,	/* Intel Knights Mill M2PCIe uncore */
+-	PFM_PMU_ARM_THUNDERX2,		/* Cavium ThunderX2 */
++	PFM_PMU_ARM_THUNDERX2,		/* Marvell ThunderX2 */
+ 
+-	PFM_PMU_ARM_THUNDERX2_DMC0,	/* Cavium ThunderX2 DMC unit 0 uncore */
+-	PFM_PMU_ARM_THUNDERX2_DMC1,	/* Cavium ThunderX2 DMC unit 1 uncore */
+-	PFM_PMU_ARM_THUNDERX2_LLC0,	/* Cavium ThunderX2 LLC unit 0 uncore */
+-	PFM_PMU_ARM_THUNDERX2_LLC1,	/* Cavium ThunderX2 LLC unit 1 uncore */
++	PFM_PMU_ARM_THUNDERX2_DMC0,	/* Marvell ThunderX2 DMC unit 0 uncore */
++	PFM_PMU_ARM_THUNDERX2_DMC1,	/* Marvell ThunderX2 DMC unit 1 uncore */
++	PFM_PMU_ARM_THUNDERX2_LLC0,	/* Marvell ThunderX2 LLC unit 0 uncore */
++	PFM_PMU_ARM_THUNDERX2_LLC1,	/* Marvell ThunderX2 LLC unit 1 uncore */
++	PFM_PMU_ARM_THUNDERX2_CCPI0,	/* Marvell ThunderX2 Cross-Socket Interconnect unit 0 uncore */
++	PFM_PMU_ARM_THUNDERX2_CCPI1,	/* Marvell ThunderX2 Cross-Socket Interconnect unit 1 uncore */
+ 	/* MUST ADD NEW PMU MODELS HERE */
+ 
+ 	PFM_PMU_MAX			/* end marker */
+diff --git a/lib/Makefile b/lib/Makefile
+index 686264b..4a4dc3b 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -177,7 +177,7 @@ SRCS += pfmlib_arm_perf_event.c
+ endif
+ 
+ INCARCH = $(INC_ARM)
+-SRCS   += pfmlib_arm.c pfmlib_arm_armv7_pmuv1.c pfmlib_arm_armv6.c pfmlib_arm_armv8.c
++SRCS   += pfmlib_arm.c pfmlib_arm_armv7_pmuv1.c pfmlib_arm_armv6.c pfmlib_arm_armv8.c pfmlib_tx2_unc_perf_event.c
+ CFLAGS += -DCONFIG_PFMLIB_ARCH_ARM
+ endif
+ 
+diff --git a/lib/events/arm_marvell_tx2_unc_events.h b/lib/events/arm_marvell_tx2_unc_events.h
+index 9b0a1b4..51e6b4d 100755
+--- a/lib/events/arm_marvell_tx2_unc_events.h
++++ b/lib/events/arm_marvell_tx2_unc_events.h
+@@ -44,6 +44,13 @@
+ #define DMC_EVENT_READ_TXNS             0xF
+ #define DMC_EVENT_MAX                   0x10
+ 
++/* CCPI event IDs */
++#define CCPI2_EVENT_REQ_PKT_SENT	0x3D
++#define CCPI2_EVENT_SNOOP_PKT_SENT	0x65
++#define CCPI2_EVENT_DATA_PKT_SENT	0x105
++#define CCPI2_EVENT_GIC_PKT_SENT	0x12D
++
++
+ static const arm_entry_t arm_thunderx2_unc_dmc_pe[]={
+ 	{.name = "UNC_DMC_READS",
+ 	 .modmsk = ARMV8_ATTRS,
+@@ -55,10 +62,45 @@ static const arm_entry_t arm_thunderx2_unc_dmc_pe[]={
+ 	 .code = DMC_EVENT_WRITE_TXNS,
+ 	 .desc = "Memory write transactions"
+ 	},
++	{.name = "UNC_DMC_DATA_TRANSFERS",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = DMC_EVENT_DATA_TRANSFERS,
++	 .desc = "Memory data transfers"
++	},
++	{.name = "UNC_DMC_CYCLES",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = DMC_EVENT_COUNT_CYCLES,
++	 .desc = "Clocks at the DMC clock rate"
++	}
+ };
+ 
+ #define ARM_TX2_CORE_DMC_COUNT	(sizeof(arm_thunderx2_unc_dmc_pe)/sizeof(arm_entry_t))
+ 
++static const arm_entry_t arm_thunderx2_unc_ccpi_pe[]={
++	{.name = "UNC_CCPI_REQ",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = CCPI2_EVENT_REQ_PKT_SENT,
++	 .desc = "Request packets sent from this node"
++	},
++	{.name = "UNC_CCPI_SNOOP",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = CCPI2_EVENT_SNOOP_PKT_SENT,
++	 .desc = "Snoop packets sent from this node"
++	},
++	{.name = "UNC_CCPI_DATA",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = CCPI2_EVENT_DATA_PKT_SENT ,
++	 .desc = "Data packets sent from this node"
++	},
++	{.name = "UNC_CCPI_GIC",
++	 .modmsk = ARMV8_ATTRS,
++	 .code = CCPI2_EVENT_GIC_PKT_SENT,
++	 .desc = "Interrupt related packets sent from this node"
++	}
++};
++
++#define ARM_TX2_CORE_CCPI_COUNT	(sizeof(arm_thunderx2_unc_ccpi_pe)/sizeof(arm_entry_t))
++
+ static const arm_entry_t arm_thunderx2_unc_llc_pe[]={
+ 	{.name = "UNC_LLC_READ",
+ 	 .modmsk = ARMV8_ATTRS,
+diff --git a/lib/pfmlib_arm_armv8.c b/lib/pfmlib_arm_armv8.c
+index 291ac60..a252951 100644
+--- a/lib/pfmlib_arm_armv8.c
++++ b/lib/pfmlib_arm_armv8.c
+@@ -179,7 +179,7 @@ pfmlib_pmu_t arm_xgene_support={
+ 	.get_event_nattrs	= pfm_arm_get_event_nattrs,
+ };
+ 
+-/* Cavium ThunderX2 support */
++/* Marvell ThunderX2 support */
+ pfmlib_pmu_t arm_thunderx2_support={
+ 	.desc			= "Cavium ThunderX2",
+ 	.name			= "arm_thunderx2",
+@@ -208,7 +208,7 @@ pfmlib_pmu_t arm_thunderx2_support={
+ 
+ #define DEFINE_TX2_DMC(n) \
+ pfmlib_pmu_t arm_thunderx2_dmc##n##_support={ \
+-	.desc			= "Cavium ThunderX2 Node"#n" DMC", \
++	.desc			= "Marvell ThunderX2 Node"#n" DMC", \
+ 	.name			= "tx2_dmc"#n, \
+ 	.perf_name		= "uncore_dmc_"#n, \
+ 	.pmu			= PFM_PMU_ARM_THUNDERX2_DMC##n, \
+@@ -235,7 +235,7 @@ DEFINE_TX2_DMC(1);
+ 
+ #define DEFINE_TX2_LLC(n) \
+ pfmlib_pmu_t arm_thunderx2_llc##n##_support={ \
+-	.desc			= "Cavium ThunderX2 node "#n" LLC", \
++	.desc			= "Marvell ThunderX2 node "#n" LLC", \
+ 	.name			= "tx2_llc"#n, \
+ 	.perf_name		= "uncore_l3c_"#n, \
+ 	.pmu			= PFM_PMU_ARM_THUNDERX2_LLC##n, \
+@@ -259,3 +259,30 @@ pfmlib_pmu_t arm_thunderx2_llc##n##_support={ \
+ 
+ DEFINE_TX2_LLC(0);
+ DEFINE_TX2_LLC(1);
++
++#define DEFINE_TX2_CCPI(n) \
++pfmlib_pmu_t arm_thunderx2_ccpi##n##_support={ \
++	.desc			= "Marvell ThunderX2 node "#n" Cross-Socket Interconnect", \
++	.name			= "tx2_ccpi"#n, \
++	.perf_name		= "uncore_ccpi_"#n, \
++	.pmu			= PFM_PMU_ARM_THUNDERX2_CCPI##n, \
++	.pme_count		= LIBPFM_ARRAY_SIZE(arm_thunderx2_unc_ccpi_pe), \
++	.type			= PFM_PMU_TYPE_UNCORE, \
++	.pe			= arm_thunderx2_unc_ccpi_pe, \
++	.pmu_detect		= pfm_arm_detect_thunderx2, \
++	.max_encoding		= 1, \
++	.num_cntrs		= 4, \
++	.get_event_encoding[PFM_OS_NONE] = pfm_tx2_unc_get_event_encoding, \
++	 PFMLIB_ENCODE_PERF(pfm_tx2_unc_get_perf_encoding),		\
++	.get_event_first	= pfm_arm_get_event_first, \
++	.get_event_next		= pfm_arm_get_event_next,  \
++	.event_is_valid		= pfm_arm_event_is_valid,  \
++	.validate_table		= pfm_arm_validate_table,  \
++	.get_event_info		= pfm_arm_get_event_info,  \
++	.get_event_attr_info	= pfm_arm_get_event_attr_info,	\
++	 PFMLIB_VALID_PERF_PATTRS(pfm_arm_perf_validate_pattrs),\
++	.get_event_nattrs	= pfm_arm_get_event_nattrs, \
++};
++
++DEFINE_TX2_CCPI(0);
++DEFINE_TX2_CCPI(1);
+diff --git a/lib/pfmlib_common.c b/lib/pfmlib_common.c
+index 8314d4b..8cb8998 100644
+--- a/lib/pfmlib_common.c
++++ b/lib/pfmlib_common.c
+@@ -484,6 +484,12 @@ static pfmlib_pmu_t *pfmlib_pmus[]=
+ 	&arm_cortex_a53_support,
+ 	&arm_xgene_support,
+ 	&arm_thunderx2_support,
++	&arm_thunderx2_dmc0_support,
++	&arm_thunderx2_dmc1_support,
++	&arm_thunderx2_llc0_support,
++	&arm_thunderx2_llc1_support,
++	&arm_thunderx2_ccpi0_support,
++	&arm_thunderx2_ccpi1_support,
+ #endif
+ #ifdef CONFIG_PFMLIB_ARCH_ARM64
+ 	&arm_cortex_a57_support,
+@@ -494,6 +500,8 @@ static pfmlib_pmu_t *pfmlib_pmus[]=
+ 	&arm_thunderx2_dmc1_support,
+ 	&arm_thunderx2_llc0_support,
+ 	&arm_thunderx2_llc1_support,
++	&arm_thunderx2_ccpi0_support,
++	&arm_thunderx2_ccpi1_support,
+ #endif
+ 
+ #ifdef CONFIG_PFMLIB_ARCH_S390X
+diff --git a/lib/pfmlib_priv.h b/lib/pfmlib_priv.h
+index cb83f43..1340a6b 100644
+--- a/lib/pfmlib_priv.h
++++ b/lib/pfmlib_priv.h
+@@ -650,6 +650,8 @@ extern pfmlib_pmu_t arm_thunderx2_dmc0_support;
+ extern pfmlib_pmu_t arm_thunderx2_dmc1_support;
+ extern pfmlib_pmu_t arm_thunderx2_llc0_support;
+ extern pfmlib_pmu_t arm_thunderx2_llc1_support;
++extern pfmlib_pmu_t arm_thunderx2_ccpi0_support;
++extern pfmlib_pmu_t arm_thunderx2_ccpi1_support;
+ 
+ extern pfmlib_pmu_t mips_74k_support;
+ extern pfmlib_pmu_t s390x_cpum_cf_support;
+diff --git a/lib/pfmlib_tx2_unc_perf_event.c b/lib/pfmlib_tx2_unc_perf_event.c
+index 1a04e1d..7dc2372 100644
+--- a/lib/pfmlib_tx2_unc_perf_event.c
++++ b/lib/pfmlib_tx2_unc_perf_event.c
+@@ -27,11 +27,51 @@ typedef union {
+ } tx2_unc_data_t;
+ 
+ static void
+-display_reg(void *this, pfmlib_event_desc_t *e, tx2_unc_data_t reg);
++display_com(void *this, pfmlib_event_desc_t *e, void *val)
++{
++	const arm_entry_t *pe = this_pe(this);
++	tx2_unc_data_t *reg = val;
++
++	__pfm_vbprintf("[UNC=0x%"PRIx64"] %s\n",
++			reg->val,
++			pe[e->event].name);
++}
++
+ static void
+-display_com(void *this, pfmlib_event_desc_t *e, void *val);
++display_reg(void *this, pfmlib_event_desc_t *e, tx2_unc_data_t reg)
++{
++	pfmlib_pmu_t *pmu = this;
++	if (pmu->display_reg)
++		pmu->display_reg(this, e, &reg);
++	else
++		display_com(this, e, &reg);
++}
++
++
+ static int
+-find_pmu_type_by_name(const char *name);
++find_pmu_type_by_name(const char *name)
++{
++	char filename[PATH_MAX];
++	FILE *fp;
++	int ret, type;
++
++	if (!name)
++		return PFM_ERR_NOTSUPP;
++
++	sprintf(filename, "/sys/bus/event_source/devices/%s/type", name);
++
++	fp = fopen(filename, "r");
++	if (!fp)
++		return PFM_ERR_NOTSUPP;
++
++	ret = fscanf(fp, "%d", &type);
++	if (ret != 1)
++		type = PFM_ERR_NOTSUPP;
++
++	fclose(fp);
++
++	return type;
++}
+ 
+ int
+ pfm_tx2_unc_get_event_encoding(void *this, pfmlib_event_desc_t *e)
+@@ -82,58 +122,3 @@ pfm_tx2_unc_get_perf_encoding(void *this, pfmlib_event_desc_t *e)
+ 
+ 	return PFM_SUCCESS;
+ }
+-
+-
+-static void
+-display_reg(void *this, pfmlib_event_desc_t *e, tx2_unc_data_t reg)
+-{
+-	pfmlib_pmu_t *pmu = this;
+-	if (pmu->display_reg)
+-		pmu->display_reg(this, e, &reg);
+-	else
+-		display_com(this, e, &reg);
+-}
+-
+-static void
+-display_com(void *this, pfmlib_event_desc_t *e, void *val)
+-{
+-	const arm_entry_t *pe = this_pe(this);
+-	tx2_unc_data_t *reg = val;
+-
+-	__pfm_vbprintf("[UNC=0x%"PRIx64" event=0x%x umask=0x%x en=%d "
+-		       "inv=%d edge=%d thres=%d] %s\n",
+-			reg->val,
+-			reg->com.unc_event,
+-			reg->com.unc_umask,
+-			reg->com.unc_en,
+-			reg->com.unc_inv,
+-			reg->com.unc_edge,
+-			reg->com.unc_thres,
+-			pe[e->event].name);
+-}
+-
+-static int
+-find_pmu_type_by_name(const char *name)
+-{
+-	char filename[PATH_MAX];
+-	FILE *fp;
+-	int ret, type;
+-
+-	if (!name)
+-		return PFM_ERR_NOTSUPP;
+-
+-	sprintf(filename, "/sys/bus/event_source/devices/%s/type", name);
+-
+-	fp = fopen(filename, "r");
+-	if (!fp)
+-		return PFM_ERR_NOTSUPP;
+-
+-	ret = fscanf(fp, "%d", &type);
+-	if (ret != 1)
+-		type = PFM_ERR_NOTSUPP;
+-
+-	fclose(fp);
+-
+-	return type;
+-}
+-
+diff --git a/tests/validate_arm64.c b/tests/validate_arm64.c
+index 35eb6ef..5cb1966 100644
+--- a/tests/validate_arm64.c
++++ b/tests/validate_arm64.c
+@@ -182,6 +182,21 @@ static const test_event_t arm64_test_events[]={
+ 	  .ret  = PFM_SUCCESS,
+ 	  .count = 1,
+ 	  .codes[0] = 0xf,
++	  .fstr = "tx2_dmc1::UNC_DMC_READS",
++	},
++	{ SRC_LINE,
++	  .name = "tx2_ccpi0::UNC_CCPI_GIC",
++	  .ret  = PFM_SUCCESS,
++	  .count = 1,
++	  .codes[0] = 0x12d,
++	  .fstr = "tx2_ccpi0::UNC_CCPI_GIC",
++	},
++	{ SRC_LINE,
++	  .name = "tx2_llc0::UNC_LLC_READ",
++	  .ret  = PFM_SUCCESS,
++	  .count = 1,
++	  .codes[0] = 0xd,
++	  .fstr = "tx2_llc0::UNC_LLC_READ",
+ 	},
+ };
+ #define NUM_TEST_EVENTS (int)(sizeof(arm64_test_events)/sizeof(test_event_t))
+-- 
+2.21.0
+
+From e401d29e89b92e999615e11ea17808e90eda93fd Mon Sep 17 00:00:00 2001
+From: Shay Gal-On <sgalon@cavium.com>
+Date: Tue, 3 Dec 2019 09:54:37 -0800
+Subject: [PATCH 4/4] Removed extra fields from tx2_unc_data_t
+
+Removed useless fields from tx2_unc_data_t.
+
+Signed-off-by: Shay Gal-On <sgalon@marvell.com>
+---
+ lib/events/arm_marvell_tx2_unc_events.h |  0
+ lib/pfmlib_tx2_unc_perf_event.c         | 13 ++-----------
+ 2 files changed, 2 insertions(+), 11 deletions(-)
+ mode change 100755 => 100644 lib/events/arm_marvell_tx2_unc_events.h
+
+diff --git a/lib/events/arm_marvell_tx2_unc_events.h b/lib/events/arm_marvell_tx2_unc_events.h
+old mode 100755
+new mode 100644
+diff --git a/lib/pfmlib_tx2_unc_perf_event.c b/lib/pfmlib_tx2_unc_perf_event.c
+index 7dc2372..154cb0a 100644
+--- a/lib/pfmlib_tx2_unc_perf_event.c
++++ b/lib/pfmlib_tx2_unc_perf_event.c
+@@ -13,17 +13,8 @@
+ typedef union {
+ 	uint64_t val;
+ 	struct {
+-		unsigned long unc_event:8;	/* event code */
+-		unsigned long unc_umask:8;	/* unit mask */
+-		unsigned long unc_res1:1;	/* reserved */
+-		unsigned long unc_rst:1;	/* reset */
+-		unsigned long unc_edge:1;	/* edge detect */
+-		unsigned long unc_res2:3;	/* reserved */
+-		unsigned long unc_en:1;		/* enable */
+-		unsigned long unc_inv:1;	/* invert counter mask */
+-		unsigned long unc_thres:8;	/* counter mask */
+-		unsigned long unc_res3:32;	/* reserved */
+-	} com; /* covers common fields for DMC/L3C */
++		unsigned long unc_res1:32;	/* reserved */
++	} com; /* reserved space for future extensions */
+ } tx2_unc_data_t;
+ 
+ static void
+-- 
+2.21.0
+

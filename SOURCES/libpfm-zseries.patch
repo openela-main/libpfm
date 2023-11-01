@@ -1,0 +1,128 @@
+commit dc643f4a460063a628b4bfba57dbbb36673a0789
+Author: Thomas Richter <tmricht@linux.ibm.com>
+Date:   Thu Jul 11 17:48:03 2019 -0700
+
+    s390/cpumf: add IBM z14 ZR1 support
+    
+    Add support for machine type 0x3907.
+    
+    Signed-off-by: Thomas Richter <tmricht@linux.ibm.com>
+
+diff --git a/lib/pfmlib_s390x_cpumf.c b/lib/pfmlib_s390x_cpumf.c
+index 4e03fc4..7566aa0 100644
+--- a/lib/pfmlib_s390x_cpumf.c
++++ b/lib/pfmlib_s390x_cpumf.c
+@@ -192,6 +192,7 @@ static int pfm_cpumcf_init(void *this)
+ 		ext_set_count = LIBPFM_ARRAY_SIZE(cpumcf_z13_counters);
+ 		break;
+ 	case 3906:  /* IBM z14  */
++	case 3907:  /* IBM z14 ZR1  */
+ 		ext_set = cpumcf_z14_counters;
+ 		ext_set_count = LIBPFM_ARRAY_SIZE(cpumcf_z14_counters);
+ 		break;
+commit c08003fb085e23f2229e58cc176fcfcf58a3b238
+Author: Thomas Richter <tmricht@linux.ibm.com>
+Date:   Thu Jul 11 17:49:42 2019 -0700
+
+    s390/cpumf: add support for counter second version number 6
+    
+    IBM added secound version number 6 in the CPU Measurement
+    Counter facility to indicate additional counters in the
+    crypto counter set.
+    
+    Signed-off-by: Thomas Richter <tmricht@linux.ibm.com>
+
+diff --git a/lib/events/s390x_cpumf_events.h b/lib/events/s390x_cpumf_events.h
+index 8be1d55..8587a3b 100644
+--- a/lib/events/s390x_cpumf_events.h
++++ b/lib/events/s390x_cpumf_events.h
+@@ -13,6 +13,8 @@
+ #define CPUMF_CTRSET_EXTENDED           1
+ #define CPUMF_CTRSET_MT_DIAG            32
+ 
++#define CPUMF_SVN6_ECC			4
++
+ 
+ static const pme_cpumf_ctr_t cpumcf_fvn1_counters[] = {
+ 	{
+@@ -270,6 +272,43 @@ static const pme_cpumf_ctr_t cpumcf_svn_generic_counters[] = {
+ 			" coprocessor is busy performing a function issued by"
+ 			" another CPU",
+ 	},
++	{
++		.ctrnum = 80,
++		.ctrset = CPUMF_CTRSET_CRYPTO,
++		.name = "ECC_FUNCTION_COUNT",
++		.desc = "This counter counts the"
++			" total number of the elliptic-curve cryptography (ECC)"
++			" functions issued by the CPU.",
++	},
++	{
++		.ctrnum = 81,
++		.ctrset = CPUMF_CTRSET_CRYPTO,
++		.name = "ECC_CYCLES_COUNT",
++		.desc = "This counter counts the total"
++			" number of CPU cycles when the ECC coprocessor is"
++			" busy performing the elliptic-curve cryptography"
++			" (ECC) functions issued by the CPU.",
++	},
++	{
++		.ctrnum = 82,
++		.ctrset = CPUMF_CTRSET_CRYPTO,
++		.name = "ECC_BLOCKED_FUNCTION_COUNT",
++		.desc = "This counter counts the total number of the"
++			" elliptic-curve cryptography (ECC) functions that are"
++			" issued by the CPU and are blocked because the ECC"
++			" coprocessor is busy performing a function issued by"
++			" another CPU.",
++	},
++	{
++		.ctrnum = 83,
++		.ctrset = CPUMF_CTRSET_CRYPTO,
++		.name = "ECC_BLOCKED_CYCLES_COUNT",
++		.desc = "This counter counts the total number of CPU cycles "
++			" blocked for the elliptic-curve cryptography (ECC) "
++			" functions issued by the CPU because the ECC"
++			" coprocessor is busy perform ing a function issued"
++			" by another CPU.",
++	},
+ };
+ 
+ static const pme_cpumf_ctr_t cpumcf_z10_counters[] = {
+diff --git a/lib/pfmlib_s390x_cpumf.c b/lib/pfmlib_s390x_cpumf.c
+index 7566aa0..e68b000 100644
+--- a/lib/pfmlib_s390x_cpumf.c
++++ b/lib/pfmlib_s390x_cpumf.c
+@@ -168,6 +168,8 @@ static int pfm_cpumcf_init(void *this)
+ 	/* counters based on second version number */
+ 	csvn_set = cpumcf_svn_generic_counters;
+ 	csvn_set_count = LIBPFM_ARRAY_SIZE(cpumcf_svn_generic_counters);
++	if (csvn < 6)	/* Crypto counter set enlarged for SVN == 6 */
++		csvn_set_count -= CPUMF_SVN6_ECC;
+ 
+ 	/* check and assign a machine-specific extended counter set */
+ 	switch (get_machine_type()) {
+commit b831b04254ac7fd1700b20b349799810952ff66e
+Author: Thomas Richter <tmricht@linux.ibm.com>
+Date:   Thu Jul 11 17:51:03 2019 -0700
+
+    s390/cpumf: add support for machine type 8561
+    
+    Add extended counter set support for s390 machine types
+    8561 and 8562.
+    
+    Signed-off-by: Thomas Richter <tmricht@linux.ibm.com>
+
+diff --git a/lib/pfmlib_s390x_cpumf.c b/lib/pfmlib_s390x_cpumf.c
+index e68b000..c11f9d9 100644
+--- a/lib/pfmlib_s390x_cpumf.c
++++ b/lib/pfmlib_s390x_cpumf.c
+@@ -195,6 +195,8 @@ static int pfm_cpumcf_init(void *this)
+ 		break;
+ 	case 3906:  /* IBM z14  */
+ 	case 3907:  /* IBM z14 ZR1  */
++	case 8561:  /* IBM Machine types 8561 and 8562 */
++	case 8562:
+ 		ext_set = cpumcf_z14_counters;
+ 		ext_set_count = LIBPFM_ARRAY_SIZE(cpumcf_z14_counters);
+ 		break;

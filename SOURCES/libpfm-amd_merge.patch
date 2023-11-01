@@ -1,0 +1,56 @@
+commit afa8700ce726153fa1547ce118f7f9b029e675c9
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Wed Jan 16 13:23:11 2019 -0800
+
+    clarify description of AMD Fam17h MERGE event
+    
+    This is a special event used when merging two counters together.
+    It needs to be programmed on the od-numbered performance counter.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h.h b/lib/events/amd64_events_fam17h.h
+index 4f865b9..b0db898 100644
+--- a/lib/events/amd64_events_fam17h.h
++++ b/lib/events/amd64_events_fam17h.h
+@@ -954,7 +954,7 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .umasks = amd64_fam17h_tablewalker_allocation,
+   },
+   { .name   = "MERGE",
+-    .desc   = "See <xref file='svd_core_pmc' title='Large Increment per Cycle Events' format='name'>.",
++    .desc   = "Merge two counters together. This event must be programmed on the odd performance counter",
+     .modmsk  = AMD64_FAM17H_ATTRS,
+     .code    = 0xfff,
+     .flags   = 0,
+
+commit ac95d1957771d527f7bf8d11a97fb10ee223d6c0
+Author: Stephane Eranian <eranian@gmail.com>
+Date:   Thu Mar 14 15:19:13 2019 -0700
+
+    remove MERGE event from AMD Fam17h table
+    
+    The MERGE event is not measuring an actual micro-architectural event. Instead
+    it is used to fuse two consecutive counters together to get a wider counter.
+    This should be used cautiously and is not currently compatible with Linux
+    perf_events interface and implementation.
+    
+    Signed-off-by: Stephane Eranian <eranian@gmail.com>
+
+diff --git a/lib/events/amd64_events_fam17h.h b/lib/events/amd64_events_fam17h.h
+index b0db898..deadbed 100644
+--- a/lib/events/amd64_events_fam17h.h
++++ b/lib/events/amd64_events_fam17h.h
+@@ -953,13 +953,6 @@ static const amd64_entry_t amd64_fam17h_pe[]={
+     .numasks = LIBPFM_ARRAY_SIZE(amd64_fam17h_tablewalker_allocation),
+     .umasks = amd64_fam17h_tablewalker_allocation,
+   },
+-  { .name   = "MERGE",
+-    .desc   = "Merge two counters together. This event must be programmed on the odd performance counter",
+-    .modmsk  = AMD64_FAM17H_ATTRS,
+-    .code    = 0xfff,
+-    .flags   = 0,
+-    .ngrp    = 0,
+-  },
+   { .name   = "L1_BTB_CORRECTION",
+     .desc   = "TBD",
+     .modmsk  = AMD64_FAM17H_ATTRS,
