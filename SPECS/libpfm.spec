@@ -11,8 +11,8 @@
 %endif
 
 Name:		libpfm
-Version:	4.11.0
-Release:	6%{?dist}
+Version:	4.13.0
+Release:	4%{?dist}
 
 Summary:	Library to encode performance events for use by perf tool
 
@@ -20,6 +20,8 @@ License:	MIT
 URL:		http://perfmon2.sourceforge.net/
 Source0:	http://sourceforge.net/projects/perfmon2/files/libpfm4/%{name}-%{version}.tar.gz
 Patch2:		libpfm-python3-setup.patch
+Patch3:		libpfm-initp.patch
+Patch4:		libpfm-zen4.patch
 
 BuildRequires: make
 BuildRequires:	gcc
@@ -71,6 +73,8 @@ Python bindings for libpfm4 and perf_event_open system call.
 %prep
 %setup -q
 %patch2 -p1 -b .python3
+%patch3 -p1 -b .test
+%patch4 -p1 -b .zen4
 
 %build
 %if %{with python}
@@ -124,6 +128,18 @@ rm $RPM_BUILD_ROOT%{_libdir}/lib*.a
 %endif
 
 %changelog
+* Mon Jun 12 2023 William cohen <wcohen@redhat.com> - 4.13.0-4
+- Identify AMD Bergamo processors.
+
+* Wed May 3 2023 William cohen <wcohen@redhat.com> - 4.13.0-3
+- Rebuild for rhbz #2186927.
+
+* Wed May 3 2023 William cohen <wcohen@redhat.com> - 4.13.0-2
+- Rebuild for rhbz #2186927.
+
+* Fri Apr 14 2023 William cohen <wcohen@redhat.com> - 4.13.0-1
+- Rebase to libpf-4.13.0 (rhbz #2185652)
+
 * Mon Aug 09 2021 Mohan Boddu <mboddu@redhat.com> - 4.11.0-6
 - Rebuilt for IMA sigs, glibc 2.34, aarch64 flags
   Related: rhbz#1991688
