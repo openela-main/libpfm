@@ -1,0 +1,31 @@
+commit 874feacbbe97fe567d3d8b1582d881d1b424dd5e
+Author: William Cohen <wcohen@redhat.com>
+Date:   Fri Apr 14 16:07:07 2023 -0400
+
+    Make sure that p is set to a known value before using.
+    
+    Need to ensure that p was initialized at the start of function
+    gen_tracepoint_table otherwise on some architectures such as s390x
+    will get the following error when compiling with -Werror:
+    
+    make[1]: Entering directory '/root/rpmbuild/BUILD/libpfm-4.13.0/lib'
+    cc -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=z14 -mtune=z15 -fasynchronous-unwind-tables -fstack-clash-protection -g -Wall -Werror -Wextra -Wno-unused-parameter -I. -I/root/rpmbuild/BUILD/libpfm-4.13.0/lib/../include -DCONFIG_PFMLIB_DEBUG -DCONFIG_PFMLIB_OS_LINUX -D_REENTRANT -I. -fvisibility=hidden -DCONFIG_PFMLIB_ARCH_S390X -I. -c pfmlib_perf_event_pmu.c
+    pfmlib_perf_event_pmu.c: In function 'gen_tracepoint_table':
+    pfmlib_perf_event_pmu.c:434:35: error: 'p' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+      434 |                         p->modmsk = 0;
+          |                         ~~~~~~~~~~^~~
+    cc1: all warnings being treated as errors
+
+diff --git a/lib/pfmlib_perf_event_pmu.c b/lib/pfmlib_perf_event_pmu.c
+index 637c5b1..8f7d7d1 100644
+--- a/lib/pfmlib_perf_event_pmu.c
++++ b/lib/pfmlib_perf_event_pmu.c
+@@ -361,7 +361,7 @@ gen_tracepoint_table(void)
+ {
+ 	DIR *dir1, *dir2;
+ 	struct dirent *d1, *d2;
+-	perf_event_t *p;
++	perf_event_t *p = NULL;
+ 	perf_umask_t *um;
+ 	char d2path[MAXPATHLEN];
+ 	char idpath[MAXPATHLEN];

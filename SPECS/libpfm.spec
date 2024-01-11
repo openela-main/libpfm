@@ -9,8 +9,8 @@
 %endif
 
 Name:		libpfm
-Version:	4.10.1
-Release:	5%{?dist}
+Version:	4.13.0
+Release:	4%{?dist}
 
 Summary:	Library to encode performance events for use by perf tool
 
@@ -19,12 +19,8 @@ License:	MIT
 URL:		http://perfmon2.sourceforge.net/
 Source0:	http://sourceforge.net/projects/perfmon2/files/libpfm4/%{name}-%{version}.tar.gz
 Patch2:		libpfm-python3-setup.patch
-Patch3:		libpfm-zseries.patch
-Patch4:		libpfm-tx2.patch
-Patch5:		libpfm-a64fx.patch
-Patch6:		libpfm-flags.patch
-Patch7:		libpfm-amd_merge.patch
-Patch8:		libpfm-zen23.patch
+Patch3:		libpfm-initp.patch
+Patch4:		libpfm-zen4.patch
 
 %if %{with python}
 BuildRequires:	python3
@@ -75,12 +71,8 @@ Python bindings for libpfm4 and perf_event_open system call.
 %prep
 %setup -q
 %patch2 -p1 -b .python3
-%patch3 -p1 -b .zseries
-%patch4 -p1 -b .tx2
-%patch5 -p1 -b .a64fx
-%patch6 -p1
-%patch7 -p1
-%patch8 -p1
+%patch3 -p1 -b .test
+%patch4 -p1 -b .zen4
 
 %build
 %if %{with python}
@@ -129,6 +121,15 @@ make \
 %endif
 
 %changelog
+* Mon Jun 12 2023 William cohen <wcohen@redhat.com> - 4.13.0-4
+- Identify AMD Bergamo processors.
+
+* Wed May 3 2023 William cohen <wcohen@redhat.com> - 4.13.0-3
+- Rebuild for rhbz #2161146.
+
+* Fri Apr 14 2023 William Cohen <wcohen@redhat.com> - 4.13.0-1
+- Rebase to libpfm-4.13.0 (RHBZ #2185653)
+
 * Sun May 8 2022 William Cohen <wcohen@redhat.com> - 4.10.1-5
 - Add AMD Zen 2/3 support (RHBZ #2067218)
 
