@@ -12,13 +12,14 @@
 
 Name:		libpfm
 Version:	4.13.0
-Release:	4%{?dist}
+Release:	5%{?dist}
 
 Summary:	Library to encode performance events for use by perf tool
 
 License:	MIT
 URL:		http://perfmon2.sourceforge.net/
 Source0:	http://sourceforge.net/projects/perfmon2/files/libpfm4/%{name}-%{version}.tar.gz
+Patch1:		libpfm-ibm-counters.patch
 Patch2:		libpfm-python3-setup.patch
 Patch3:		libpfm-initp.patch
 Patch4:		libpfm-zen4.patch
@@ -72,6 +73,7 @@ Python bindings for libpfm4 and perf_event_open system call.
 
 %prep
 %setup -q
+%patch1 -p1 -b .ibm
 %patch2 -p1 -b .python3
 %patch3 -p1 -b .test
 %patch4 -p1 -b .zen4
@@ -128,6 +130,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/lib*.a
 %endif
 
 %changelog
+* Mon Jan 19 2026 Aaron Merey <amerey@redhat.com> - 4.13.0-5
+- Add libpfm-ibm-counters.patch
+
 * Mon Jun 12 2023 William cohen <wcohen@redhat.com> - 4.13.0-4
 - Identify AMD Bergamo processors.
 
