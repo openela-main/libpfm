@@ -12,7 +12,7 @@
 
 Name:		libpfm
 Version:	4.13.0
-Release:	11%{?dist}
+Release:	11%{?dist}.1
 
 Summary:	Library to encode performance events for use by perf tool
 
@@ -22,6 +22,8 @@ Source0:	http://sourceforge.net/projects/perfmon2/files/libpfm4/%{name}-%{versio
 Patch1:		libpfm-ibm-counters.patch
 Patch2:		libpfm-python3-setup.patch
 Patch3:		libpfm-gcc14.patch
+Patch4:		libpfm-monaka.patch
+Patch5:		libpfm-monaka-v1.1.patch 
 
 BuildRequires: make
 BuildRequires:	gcc
@@ -78,6 +80,9 @@ Python bindings for libpfm4 and perf_event_open system call.
 %patch -P1 -p1 -b .ibm
 %patch -P2 -p1 -b .python3
 %patch -P3 -p1 -b .gcc14
+%patch -P4 -p1 -b .monaka
+%patch -P5 -p1 -b .monaka-v1.1
+
 # to prevent setuptools from installing an .egg, we need to pass --root to setup.py install
 # see https://github.com/pypa/setuptools/issues/3143
 # and https://github.com/pypa/pip/issues/11501
@@ -137,6 +142,10 @@ rm $RPM_BUILD_ROOT%{_libdir}/lib*.a
 %endif
 
 %changelog
+* Thu May 21 2026 Aaron Merey <amerey@redhat.com> - 4.13.0-11.1
+- Add libpfm-monaka.patch
+- Add libpfm-monaka-v1.1.patch 
+
 * Mon Jan 19 2026 Aaron Merey <amerey@redhat.com> - 4.13.0-11
 - Add libpfm-ibm-counters.patch
 
